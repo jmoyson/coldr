@@ -1,0 +1,27 @@
+{
+  "name": "coldr",
+  "version": "0.0.1",
+  "description": "Run Cold emails campaigns from your terminal.",
+  "bin": {
+    "coldr": "bin/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jmoyson/coldr.git"
+  },
+  "keywords": [],
+  "author": "Jeremy Moyson <moyson.jeremy@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jmoyson/coldr/issues"
+  },
+  "homepage": "https://github.com/jmoyson/coldr#readme",
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.2"
+  }
+}
