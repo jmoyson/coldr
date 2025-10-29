@@ -13,6 +13,9 @@ describe('E2E: Schedule Command', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
     
+    // Mock process.stderr.write for ora spinners
+    vi.spyOn(process.stderr, 'write').mockImplementation(() => {});
+    
     // Create a test campaign
     init(testCampaignName);
   });
@@ -118,5 +121,86 @@ describe('E2E: Schedule Command', () => {
 
     // Verify schedule was created (template processing happens during actual send)
     expect(result.schedule.length).toBeGreaterThan(0);
+  });
+
+  it('should fail fast when RESEND_API_KEY is missing', async () => {
+    // Save original API key
+    const originalKey = process.env.RESEND_API_KEY;
+    
+    // Remove API key
+    delete process.env.RESEND_API_KEY;
+
+    // Should fail immediately with clear message
+    await expect(schedule(testCampaignName))
+      .rejects.toThrow('RESEND_API_KEY is required');
+
+    // Restore API key
+    if (originalKey) {
+      process.env.RESEND_API_KEY = originalKey;
+    }
+  });
+
+  it('should allow dry run without RESEND_API_KEY', async () => {
+    // Save original API key
+    const originalKey = process.env.RESEND_API_KEY;
+    
+    // Remove API key
+    delete process.env.RESEND_API_KEY;
+
+    // Dry run should work without API key
+    const result = await schedule(testCampaignName, { dryRun: true });
+    expect(result.dryRun).toBe(true);
+
+    // Restore API key
+    if (originalKey) {
+      process.env.RESEND_API_KEY = originalKey;
+    }
+  });
+
+  it('should accept API key via resendApiKey option', async () => {
+    // Save original API key
+    const originalKey = process.env.RESEND_API_KEY;
+    
+    // Remove env var
+    delete process.env.RESEND_API_KEY;
+
+    // Should work with API key in options (will fail at Resend API but validates key is set)
+    const result = await schedule(testCampaignName, { 
+      dryRun: true, 
+      resendApiKey: 're_test_key' 
+    });
+    
+    expect(result.dryRun).toBe(true);
+
+    // Restore API key
+    if (originalKey) {
+      process.env.RESEND_API_KEY = originalKey;
+    } else {
+      delete process.env.RESEND_API_KEY;
+    }
+  });
+
+  it('should prioritize resendApiKey option over env var', async () => {
+    // Save original API key
+    const originalKey = process.env.RESEND_API_KEY;
+    
+    // Set env var to one value
+    process.env.RESEND_API_KEY = 're_env_key';
+
+    // Pass different key in options
+    await schedule(testCampaignName, { 
+      dryRun: true, 
+      resendApiKey: 're_option_key' 
+    });
+    
+    // Option should have overridden env var
+    expect(process.env.RESEND_API_KEY).toBe('re_option_key');
+
+    // Restore API key
+    if (originalKey) {
+      process.env.RESEND_API_KEY = originalKey;
+    } else {
+      delete process.env.RESEND_API_KEY;
+    }
   });
 });

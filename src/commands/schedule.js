@@ -2,7 +2,7 @@ import { loadCampaignConfig } from '../services/campaign.service.js';
 import { loadAndFilterLeads } from '../services/leads.service.js';
 import { calculateSchedule, getScheduleSummary } from '../services/scheduler.service.js';
 import { scheduleEmailBatch } from '../services/email.service.js';
-import { logSuccess, logInfo, logWarning } from '../utils/error.utils.js';
+import { logSuccess, logInfo, logWarning, logStat, createSpinner, CampaignError } from '../utils/error.utils.js';
 import { getCampaignPath, getCampaignFilePath, readTextFile } from '../utils/file.utils.js';
 import { TEMPLATE_FILE } from '../constants/index.js';
 
@@ -11,15 +11,29 @@ import { TEMPLATE_FILE } from '../constants/index.js';
  * @param {string} campaignName - Campaign name
  * @param {Object} options - Command options
  * @param {boolean} options.dryRun - If true, only show schedule without sending
+ * @param {string} options.resendApiKey - Resend API key (overrides env var)
  * @returns {Promise<Object>} Schedule results
  */
 export default async function schedule(campaignName, options = {}) {
-  const { dryRun = false } = options;
+  const { dryRun = false, resendApiKey } = options;
+  
+  // Set API key from option if provided (takes precedence over env var)
+  if (resendApiKey) {
+    process.env.RESEND_API_KEY = resendApiKey;
+  }
+  
+  // Check API key early (unless dry run)
+  if (!dryRun && !process.env.RESEND_API_KEY) {
+    throw new CampaignError(
+      'RESEND_API_KEY is required.\nSet it with: export RESEND_API_KEY="re_your_key"\nOr use: --resend-api-key "re_your_key"',
+      'MISSING_API_KEY'
+    );
+  }
   
   // Load and validate campaign configuration
-  logInfo('Loading campaign configuration...');
+  const configSpinner = createSpinner('Loading campaign configuration').start();
   const config = loadCampaignConfig(campaignName);
-  logSuccess('Config validation passed');
+  configSpinner.succeed('Configuration loaded');
   
   // Load campaign path and template
   const campaignPath = getCampaignPath(campaignName);
@@ -27,13 +41,14 @@ export default async function schedule(campaignName, options = {}) {
   const template = readTextFile(templatePath);
   
   // Load and filter leads
-  logInfo('Loading leads...');
+  const leadsSpinner = createSpinner('Loading leads').start();
   const { validLeads, suppressedLeads, totalLeads } = loadAndFilterLeads(campaignPath);
+  leadsSpinner.succeed('Leads loaded');
   
-  logInfo(`Total leads: ${totalLeads}`);
-  logInfo(`Valid leads: ${validLeads.length}`);
+  logStat('Total leads', totalLeads);
+  logStat('Valid leads', validLeads.length);
   if (suppressedLeads.length > 0) {
-    logWarning(`Suppressed leads: ${suppressedLeads.length}`);
+    logStat('Suppressed', suppressedLeads.length);
   }
   
   if (validLeads.length === 0) {
@@ -42,43 +57,58 @@ export default async function schedule(campaignName, options = {}) {
   }
   
   // Calculate schedule
-  logInfo('Calculating schedule...');
+  const scheduleSpinner = createSpinner('Calculating schedule').start();
   const schedule = calculateSchedule(config, validLeads);
   const summary = getScheduleSummary(schedule);
+  scheduleSpinner.succeed('Schedule calculated');
   
-  logSuccess('Schedule calculated');
-  logInfo(`Campaign: ${campaignName}`);
-  logInfo(`Sender: ${config.sender}`);
-  logInfo(`Subject: ${config.subject}`);
-  logInfo(`Emails per day: ${config.perDay}`);
-  logInfo(`Total emails: ${summary.totalEmails}`);
-  logInfo(`Start date: ${summary.startDate}`);
-  logInfo(`End date: ${summary.endDate}`);
-  logInfo(`Duration: ${summary.totalDays} days`);
+  console.log(''); // Empty line for spacing
+  logInfo(`📧 Campaign: ${campaignName}`);
+  logStat('Sender', config.sender);
+  logStat('Subject', config.subject);
+  logStat('Emails/day', config.perDay);
+  logStat('Total emails', summary.totalEmails);
+  logStat('Start date', new Date(summary.startDate).toLocaleString());
+  logStat('End date', new Date(summary.endDate).toLocaleString());
+  logStat('Duration', `${summary.totalDays} day${summary.totalDays > 1 ? 's' : ''}`);
   
   // Dry run mode - just show schedule
   if (dryRun) {
-    logInfo('\n[DRY RUN] Schedule preview (first 5 emails):');
+    console.log('');
+    logInfo('🔍 DRY RUN - Preview (first 5 emails):');
     schedule.slice(0, 5).forEach(({ lead, scheduledAt }) => {
-      logInfo(`  ${scheduledAt} -> ${lead.email} (${lead.firstName || 'N/A'})`);
+      const date = new Date(scheduledAt);
+      logInfo(`  ${date.toLocaleString()} → ${lead.email} ${lead.firstName ? `(${lead.firstName})` : ''}`);
     });
     if (schedule.length > 5) {
       logInfo(`  ... and ${schedule.length - 5} more`);
     }
+    console.log('');
     return { scheduled: 0, failed: 0, dryRun: true, schedule };
   }
   
   // Schedule emails via Resend API
-  logInfo('\nScheduling emails via Resend...');
+  console.log('');
+  const sendSpinner = createSpinner(`Scheduling ${schedule.length} email${schedule.length > 1 ? 's' : ''} via Resend`).start();
   const results = await scheduleEmailBatch(config, schedule, template);
   
   const scheduled = results.filter(r => r.success).length;
   const failed = results.filter(r => !r.success).length;
   
-  logSuccess(`Successfully scheduled: ${scheduled} emails`);
-  if (failed > 0) {
-    logWarning(`Failed to schedule: ${failed} emails`);
+  if (failed === 0) {
+    sendSpinner.succeed(`Successfully scheduled ${scheduled} email${scheduled > 1 ? 's' : ''}`);
+  } else {
+    sendSpinner.warn(`Scheduled ${scheduled}, failed ${failed}`);
   }
   
+  if (failed > 0) {
+    console.log('');
+    logWarning('Failed emails:');
+    results.filter(r => !r.success).forEach(({ lead, error }) => {
+      logInfo(`  ${lead.email}: ${error}`);
+    });
+  }
+  
+  console.log('');
   return { scheduled, failed, results };
 }

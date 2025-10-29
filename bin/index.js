@@ -34,6 +34,7 @@ program
   .description('Schedule a campaign')
   .argument('<campaign>', 'Campaign name')
   .option('--dry-run', 'Preview schedule without sending emails')
+  .option('--resend-api-key <key>', 'Resend API key (overrides RESEND_API_KEY env var)')
   .action(async (campaign, options) => {
     try {
       await schedule(campaign, options);

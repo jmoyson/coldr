@@ -9,8 +9,12 @@ describe('E2E: Init Command', () => {
 
   // Mock console methods to avoid cluttering test output
   beforeEach(() => {
+    // Mock console to avoid cluttering test output
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
+    
+    // Mock process.stderr.write for ora spinners
+    vi.spyOn(process.stderr, 'write').mockImplementation(() => {});
   });
 
   afterEach(() => {
