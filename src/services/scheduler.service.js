@@ -38,8 +38,14 @@ function getNextWorkDay(date, workDays) {
  * @returns {Date} Date with random time in work hours
  */
 function randomizeTimeInWorkHours(date, workHours) {
-  const [startHour, endHour] = workHours;
+  let [startHour, endHour] = workHours;
   const result = new Date(date);
+
+  // make sure start hour is before now
+  const now = new Date();
+  if (startHour < now.getHours()) {
+    startHour = now.getHours() + 1;
+  }
 
   // Random hour between start and end
   const randomHour =
@@ -70,7 +76,8 @@ export function calculateSchedule(config, leads) {
 
   // Ensure start date is today or after 
   const safeDate = new Date();
-  safeDate.setHours(safeDate.getHours() + 1, 0, 0, 0);
+  safeDate.setHours(safeDate.getHours() + 1);
+  
   if (currentDate < safeDate) {
     currentDate = safeDate;
   }

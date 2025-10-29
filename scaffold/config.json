@@ -2,7 +2,7 @@
   "sender": "Your Name <hello@yourdomain.com>",
   "subject": "Quick question about {{company}}",
   "perDay": 20,
-  "startDate": "2025-10-28T09:00:00Z",
+  "startDate": "2025-10-29T00:00:00Z",
   "workDays": [1, 2, 3, 4, 5],
   "workHours": [9, 17],
   "unsubscribeMailto": "mailto:unsubscribe@yourdomain.com?subject=STOP"
