@@ -26,7 +26,7 @@ Coldr gives you:
 ### Install
 
 ```bash
-npm install -g coldr
+npm install -g @jmoyson/coldr
 ```
 
 ### Initialize Campaign
