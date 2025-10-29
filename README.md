@@ -54,15 +54,23 @@ my-campaign/
 {
   "sender": "Alice <alice@yourstartup.com>",
   "subject": "Quick question about {{company}}",
-  "unsubscribeLink": "mailto:unsubscribe@yourstartup.com?subject=STOP", // optional, default is no unsubscribe link
-  "perDay": 20, // optional, default is 20 emails per day
-  "startDate": "2025-10-28T09:00:00+02:00", // optional, default is tomorrow
-  "workDays": [0, 1, 2, 3, 4, 5], // optional, default is all Monday to Friday
-  "workHours": [9, 17] // optional, default is 9am to 5pm
+  "perDay": 20,
+  "startDate": "2025-10-28T09:00:00Z",
+  "workDays": [1, 2, 3, 4, 5],
+  "workHours": [9, 17],
+  "unsubscribeMailto": "mailto:unsubscribe@yourstartup.com?subject=STOP"
 }
 ```
 
-**2. Add your contacts to `leads.csv`:**
+- **sender**: Your name and email `"Name <email@domain.com>"`
+- **subject**: Email subject (supports `{{variables}}`)
+- **perDay**: Max emails per day
+- **startDate**: Campaign start (ISO 8601 format)
+- **workDays**: Days to send (0=Sunday, 6=Saturday)
+- **workHours**: Time range `[startHour, endHour]` (24h format)
+- **unsubscribeMailto**: Unsubscribe link
+
+**2. Add contacts to `leads.csv`:**
 
 ```csv
 email,firstName,company
@@ -70,26 +78,44 @@ bob@acme.io,Bob,Acme Corp
 sarah@tech.co,Sarah,Tech Co
 ```
 
+Any CSV column can be used as a `{{variable}}` in your template.
+
 **3. Customize `template.html`:**
 
 ```html
 <p>Hi {{firstName}},</p>
-
 <p>I noticed {{company}} is working on [relevant topic].</p>
-
 <p>Quick question: would you be open to a 15-minute intro call?</p>
-
 <p>Best,<br />Alice</p>
+```
+
+**4. (Optional) Add suppressions to `suppressions.json`:**
+
+```json
+{
+  "emails": ["blocked@example.com"],
+  "domains": ["competitor.com"]
+}
 ```
 
 ### Schedule Emails
 
+**Preview first (dry run):**
 ```bash
 export RESEND_API_KEY=re_your_api_key
-coldr schedule
+coldr schedule my-campaign --dry-run
 ```
 
-**That's it.** Coldr schedules your emails and Resend handles the delivery.
+**Schedule for real:**
+```bash
+coldr schedule my-campaign
+```
+
+Emails are scheduled via Resend API and sent automatically at calculated times. The scheduler:
+- Respects work days and hours
+- Randomizes send times for natural distribution
+- Enforces daily limits
+- Filters suppressed emails/domains
 
 ---
 
