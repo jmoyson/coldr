@@ -1,0 +1,34 @@
+# Development files
+.github/
+.private/
+tests/
+*.test.js
+*.spec.js
+
+# Configuration files
+.prettierrc
+.prettierignore
+eslint.config.js
+.gitignore
+
+# Documentation (keep only README.md)
+docs/
+
+# CI/CD
+.git/
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*

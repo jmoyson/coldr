@@ -6,19 +6,38 @@
     "coldr": "bin/index.js"
   },
   "type": "module",
+  "files": [
+    "bin/",
+    "src/",
+    "scaffold/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "prepublishOnly": "npm run lint && npm test",
+    "pack:preview": "npm pack --dry-run"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jmoyson/coldr.git"
   },
-  "keywords": [],
+  "keywords": [
+    "cold-email",
+    "email-campaign",
+    "cli",
+    "automation",
+    "email-marketing",
+    "outreach"
+  ],
   "author": "Jeremy Moyson <moyson.jeremy@gmail.com>",
   "license": "MIT",
   "bugs": {
