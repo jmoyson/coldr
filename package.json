@@ -1,5 +1,5 @@
 {
-  "name": "coldr",
+  "name": "@jmoyson/coldr",
   "version": "0.0.1",
   "description": "Run Cold emails campaigns from your terminal.",
   "bin": {
