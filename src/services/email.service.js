@@ -13,14 +13,14 @@ import { CampaignError } from '../utils/error.utils.js';
  */
 function getResendClient() {
   const apiKey = process.env.RESEND_API_KEY;
-  
+
   if (!apiKey) {
     throw new CampaignError(
       'RESEND_API_KEY environment variable is required',
       'MISSING_API_KEY'
     );
   }
-  
+
   return new Resend(apiKey);
 }
 
@@ -37,7 +37,7 @@ function parseSender(sender) {
   }
   return {
     name: match[1].trim(),
-    email: match[2].trim()
+    email: match[2].trim(),
   };
 }
 
@@ -49,16 +49,16 @@ function parseSender(sender) {
  */
 function processTemplate(template, lead) {
   let processed = template;
-  
+
   // First, replace all known variables
   Object.keys(lead).forEach((key) => {
     const regex = new RegExp(`{{${key}}}`, 'g');
     processed = processed.replace(regex, lead[key] || '');
   });
-  
+
   // Then, remove any remaining unreplaced variables
   processed = processed.replace(/{{[^}]+}}/g, '');
-  
+
   return processed;
 }
 
@@ -74,11 +74,18 @@ function processTemplate(template, lead) {
  * @returns {Promise<Object>} Resend API response
  * @throws {CampaignError} If scheduling fails
  */
-export async function scheduleEmail({ sender, to, subject, html, scheduledAt, unsubscribeMailto }) {
+export async function scheduleEmail({
+  sender,
+  to,
+  subject,
+  html,
+  scheduledAt,
+  unsubscribeMailto,
+}) {
   try {
     const resend = getResendClient();
     const { name, email } = parseSender(sender);
-    
+
     const response = await resend.emails.send({
       from: `${name} <${email}>`,
       to: [to],
@@ -86,10 +93,10 @@ export async function scheduleEmail({ sender, to, subject, html, scheduledAt, un
       html,
       scheduledAt,
       headers: {
-        'List-Unsubscribe': unsubscribeMailto
-      }
+        'List-Unsubscribe': unsubscribeMailto,
+      },
     });
-    
+
     return response;
   } catch (error) {
     throw new CampaignError(
@@ -108,37 +115,37 @@ export async function scheduleEmail({ sender, to, subject, html, scheduledAt, un
  */
 export async function scheduleEmailBatch(config, scheduledLeads, template) {
   const results = [];
-  
+
   for (const { lead, scheduledAt } of scheduledLeads) {
     try {
       const html = processTemplate(template, lead);
       const subject = processTemplate(config.subject, lead);
-      
+
       const response = await scheduleEmail({
         sender: config.sender,
         to: lead.email,
         subject,
         html,
         scheduledAt,
-        unsubscribeMailto: config.unsubscribeMailto
+        unsubscribeMailto: config.unsubscribeMailto,
       });
-      
+
       results.push({
         lead,
         scheduledAt,
         success: true,
-        emailId: response.id
+        emailId: response.id,
       });
     } catch (error) {
       results.push({
         lead,
         scheduledAt,
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
-  
+
   return results;
 }
 
@@ -147,5 +154,5 @@ export async function scheduleEmailBatch(config, scheduledLeads, template) {
  */
 export const _internal = {
   parseSender,
-  processTemplate
+  processTemplate,
 };

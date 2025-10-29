@@ -12,10 +12,10 @@ describe('E2E: Schedule Command', () => {
     // Mock console to avoid cluttering test output
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     // Mock process.stderr.write for ora spinners
     vi.spyOn(process.stderr, 'write').mockImplementation(() => {});
-    
+
     // Create a test campaign
     init(testCampaignName);
   });
@@ -40,23 +40,25 @@ describe('E2E: Schedule Command', () => {
   });
 
   it('should fail for non-existent campaign', async () => {
-    await expect(schedule('non-existent-campaign', { dryRun: true }))
-      .rejects.toThrow('does not exist');
+    await expect(
+      schedule('non-existent-campaign', { dryRun: true })
+    ).rejects.toThrow('does not exist');
   });
 
   it('should fail for campaign with invalid config', async () => {
     // Corrupt the config file
     const configPath = path.join(testCampaignPath, 'config.json');
     const invalidConfig = {
-      sender: 'invalid-email-format',  // Missing proper format
-      subject: '',  // Empty subject
-      perDay: -5,  // Negative number
-      startDate: 'not-a-date'
+      sender: 'invalid-email-format', // Missing proper format
+      subject: '', // Empty subject
+      perDay: -5, // Negative number
+      startDate: 'not-a-date',
     };
     fs.writeFileSync(configPath, JSON.stringify(invalidConfig, null, 2));
 
-    await expect(schedule(testCampaignName, { dryRun: true }))
-      .rejects.toThrow('Failed to load or validate config');
+    await expect(schedule(testCampaignName, { dryRun: true })).rejects.toThrow(
+      'Failed to load or validate config'
+    );
   });
 
   it('should load and filter leads correctly', async () => {
@@ -64,7 +66,7 @@ describe('E2E: Schedule Command', () => {
     const suppressionsPath = path.join(testCampaignPath, 'suppressions.json');
     const suppressions = {
       emails: ['alice@example.com'],
-      domains: []
+      domains: [],
     };
     fs.writeFileSync(suppressionsPath, JSON.stringify(suppressions, null, 2));
 
@@ -84,7 +86,9 @@ describe('E2E: Schedule Command', () => {
     const result = await schedule(testCampaignName, { dryRun: true });
 
     // Verify emails are scheduled on different days
-    const dates = result.schedule.map(s => new Date(s.scheduledAt).toDateString());
+    const dates = result.schedule.map((s) =>
+      new Date(s.scheduledAt).toDateString()
+    );
     const uniqueDates = new Set(dates);
     expect(uniqueDates.size).toBe(result.schedule.length);
   });
@@ -126,13 +130,14 @@ describe('E2E: Schedule Command', () => {
   it('should fail fast when RESEND_API_KEY is missing', async () => {
     // Save original API key
     const originalKey = process.env.RESEND_API_KEY;
-    
+
     // Remove API key
     delete process.env.RESEND_API_KEY;
 
     // Should fail immediately with clear message
-    await expect(schedule(testCampaignName))
-      .rejects.toThrow('RESEND_API_KEY is required');
+    await expect(schedule(testCampaignName)).rejects.toThrow(
+      'RESEND_API_KEY is required'
+    );
 
     // Restore API key
     if (originalKey) {
@@ -143,7 +148,7 @@ describe('E2E: Schedule Command', () => {
   it('should allow dry run without RESEND_API_KEY', async () => {
     // Save original API key
     const originalKey = process.env.RESEND_API_KEY;
-    
+
     // Remove API key
     delete process.env.RESEND_API_KEY;
 
@@ -160,16 +165,16 @@ describe('E2E: Schedule Command', () => {
   it('should accept API key via resendApiKey option', async () => {
     // Save original API key
     const originalKey = process.env.RESEND_API_KEY;
-    
+
     // Remove env var
     delete process.env.RESEND_API_KEY;
 
     // Should work with API key in options (will fail at Resend API but validates key is set)
-    const result = await schedule(testCampaignName, { 
-      dryRun: true, 
-      resendApiKey: 're_test_key' 
+    const result = await schedule(testCampaignName, {
+      dryRun: true,
+      resendApiKey: 're_test_key',
     });
-    
+
     expect(result.dryRun).toBe(true);
 
     // Restore API key
@@ -183,16 +188,16 @@ describe('E2E: Schedule Command', () => {
   it('should prioritize resendApiKey option over env var', async () => {
     // Save original API key
     const originalKey = process.env.RESEND_API_KEY;
-    
+
     // Set env var to one value
     process.env.RESEND_API_KEY = 're_env_key';
 
     // Pass different key in options
-    await schedule(testCampaignName, { 
-      dryRun: true, 
-      resendApiKey: 're_option_key' 
+    await schedule(testCampaignName, {
+      dryRun: true,
+      resendApiKey: 're_option_key',
     });
-    
+
     // Option should have overridden env var
     expect(process.env.RESEND_API_KEY).toBe('re_option_key');
 

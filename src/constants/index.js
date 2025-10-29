@@ -13,7 +13,7 @@ export const REQUIRED_CAMPAIGN_FILES = [
   'config.json',
   'leads.csv',
   'template.html',
-  'suppressions.json'
+  'suppressions.json',
 ];
 
 /**

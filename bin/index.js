@@ -2,18 +2,18 @@
 
 import { program } from 'commander';
 
-
 import { handleCommandError } from '../src/utils/error.utils.js';
-import { APP_NAME, APP_VERSION, APP_DESCRIPTION } from '../src/constants/index.js';
+import {
+  APP_NAME,
+  APP_VERSION,
+  APP_DESCRIPTION,
+} from '../src/constants/index.js';
 
 import init from '../src/commands/init.js';
 import schedule from '../src/commands/schedule.js';
 
 // Configure program
-program
-  .name(APP_NAME)
-  .version(APP_VERSION)
-  .description(APP_DESCRIPTION);
+program.name(APP_NAME).version(APP_VERSION).description(APP_DESCRIPTION);
 
 // Init command
 program
@@ -34,7 +34,10 @@ program
   .description('Schedule a campaign')
   .argument('<campaign>', 'Campaign name')
   .option('--dry-run', 'Preview schedule without sending emails')
-  .option('--resend-api-key <key>', 'Resend API key (overrides RESEND_API_KEY env var)')
+  .option(
+    '--resend-api-key <key>',
+    'Resend API key (overrides RESEND_API_KEY env var)'
+  )
   .action(async (campaign, options) => {
     try {
       await schedule(campaign, options);
@@ -45,4 +48,3 @@ program
 
 // Parse arguments
 program.parse(process.argv);
-

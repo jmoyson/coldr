@@ -12,7 +12,7 @@ describe('E2E: Init Command', () => {
     // Mock console to avoid cluttering test output
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     // Mock process.stderr.write for ora spinners
     vi.spyOn(process.stderr, 'write').mockImplementation(() => {});
   });
@@ -33,13 +33,22 @@ describe('E2E: Init Command', () => {
     expect(result).toBe(testCampaignPath);
 
     // Verify all required files exist
-    expect(fs.existsSync(path.join(testCampaignPath, 'config.json'))).toBe(true);
+    expect(fs.existsSync(path.join(testCampaignPath, 'config.json'))).toBe(
+      true
+    );
     expect(fs.existsSync(path.join(testCampaignPath, 'leads.csv'))).toBe(true);
-    expect(fs.existsSync(path.join(testCampaignPath, 'template.html'))).toBe(true);
-    expect(fs.existsSync(path.join(testCampaignPath, 'suppressions.json'))).toBe(true);
+    expect(fs.existsSync(path.join(testCampaignPath, 'template.html'))).toBe(
+      true
+    );
+    expect(
+      fs.existsSync(path.join(testCampaignPath, 'suppressions.json'))
+    ).toBe(true);
 
     // Verify config.json has valid structure
-    const configContent = fs.readFileSync(path.join(testCampaignPath, 'config.json'), 'utf-8');
+    const configContent = fs.readFileSync(
+      path.join(testCampaignPath, 'config.json'),
+      'utf-8'
+    );
     const config = JSON.parse(configContent);
     expect(config).toHaveProperty('sender');
     expect(config).toHaveProperty('subject');

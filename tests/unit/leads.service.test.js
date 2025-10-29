@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { filterLeads, _internal } from '../../src/services/leads.service.js';
 
 const { parseCSV, isSuppressed } = _internal;
@@ -6,14 +6,15 @@ const { parseCSV, isSuppressed } = _internal;
 describe('Leads Service', () => {
   describe('parseCSV', () => {
     it('should parse valid CSV', () => {
-      const csv = 'email,firstName,company\nalice@example.com,Alice,Example Corp\nbob@sample.io,Bob,Sample Inc';
+      const csv =
+        'email,firstName,company\nalice@example.com,Alice,Example Corp\nbob@sample.io,Bob,Sample Inc';
       const leads = parseCSV(csv);
-      
+
       expect(leads).toHaveLength(2);
       expect(leads[0]).toEqual({
         email: 'alice@example.com',
         firstName: 'Alice',
-        company: 'Example Corp'
+        company: 'Example Corp',
       });
     });
 
@@ -34,9 +35,10 @@ describe('Leads Service', () => {
     });
 
     it('should skip empty lines', () => {
-      const csv = 'email,firstName\nalice@example.com,Alice\n\nbob@sample.io,Bob';
+      const csv =
+        'email,firstName\nalice@example.com,Alice\n\nbob@sample.io,Bob';
       const leads = parseCSV(csv);
-      
+
       expect(leads).toHaveLength(2);
     });
   });
@@ -44,7 +46,7 @@ describe('Leads Service', () => {
   describe('isSuppressed', () => {
     const suppressions = {
       emails: ['blocked@example.com', 'spam@test.com'],
-      domains: ['blocked-domain.com', 'spam-domain.io']
+      domains: ['blocked-domain.com', 'spam-domain.io'],
     };
 
     it('should return true for suppressed email', () => {
@@ -52,7 +54,9 @@ describe('Leads Service', () => {
     });
 
     it('should return true for suppressed domain', () => {
-      expect(isSuppressed('anyone@blocked-domain.com', suppressions)).toBe(true);
+      expect(isSuppressed('anyone@blocked-domain.com', suppressions)).toBe(
+        true
+      );
     });
 
     it('should be case insensitive', () => {
@@ -72,18 +76,18 @@ describe('Leads Service', () => {
   describe('filterLeads', () => {
     const suppressions = {
       emails: ['blocked@example.com'],
-      domains: ['spam.com']
+      domains: ['spam.com'],
     };
 
     it('should filter out suppressed emails', () => {
       const leads = [
         { email: 'valid@example.com', firstName: 'Alice' },
         { email: 'blocked@example.com', firstName: 'Bob' },
-        { email: 'test@spam.com', firstName: 'Charlie' }
+        { email: 'test@spam.com', firstName: 'Charlie' },
       ];
 
       const { validLeads, suppressedLeads } = filterLeads(leads, suppressions);
-      
+
       expect(validLeads).toHaveLength(1);
       expect(validLeads[0].email).toBe('valid@example.com');
       expect(suppressedLeads).toHaveLength(2);
@@ -93,29 +97,27 @@ describe('Leads Service', () => {
       const leads = [
         { email: 'valid@example.com', firstName: 'Alice' },
         { firstName: 'Bob' }, // Missing email
-        { email: '', firstName: 'Charlie' } // Empty email
+        { email: '', firstName: 'Charlie' }, // Empty email
       ];
 
       const { validLeads, suppressedLeads } = filterLeads(leads, suppressions);
-      
+
       expect(validLeads).toHaveLength(1);
       expect(suppressedLeads).toHaveLength(2);
       expect(suppressedLeads[0].reason).toBe('Missing email');
     });
 
     it('should add suppression reason', () => {
-      const leads = [
-        { email: 'blocked@example.com', firstName: 'Bob' }
-      ];
+      const leads = [{ email: 'blocked@example.com', firstName: 'Bob' }];
 
       const { suppressedLeads } = filterLeads(leads, suppressions);
-      
+
       expect(suppressedLeads[0].reason).toBe('Suppressed');
     });
 
     it('should handle empty leads array', () => {
       const { validLeads, suppressedLeads } = filterLeads([], suppressions);
-      
+
       expect(validLeads).toHaveLength(0);
       expect(suppressedLeads).toHaveLength(0);
     });

@@ -75,10 +75,10 @@ export function validateRequiredFiles(dirPath, requiredFiles) {
   const missingFiles = requiredFiles.filter(
     (file) => !fileExists(path.join(dirPath, file))
   );
-  
+
   return {
     valid: missingFiles.length === 0,
-    missingFiles
+    missingFiles,
   };
 }
 

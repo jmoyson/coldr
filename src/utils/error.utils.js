@@ -61,7 +61,7 @@ export function createSpinner(text) {
   return ora({
     text: chalk.dim(text),
     color: 'cyan',
-    spinner: 'dots'
+    spinner: 'dots',
   });
 }
 
@@ -85,7 +85,7 @@ export function handleCommandError(error, exit = true) {
   } else {
     logError('An unexpected error occurred', error);
   }
-  
+
   if (exit) {
     process.exit(1);
   }

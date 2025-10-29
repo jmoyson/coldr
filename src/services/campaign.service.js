@@ -7,7 +7,7 @@ import {
   validateRequiredFiles,
   getCampaignPath,
   getCampaignFilePath,
-  readJsonFile
+  readJsonFile,
 } from '../utils/file.utils.js';
 import { validateSchema } from '../utils/validation.utils.js';
 import { configSchema } from '../schemas/config.schema.js';
@@ -59,7 +59,10 @@ export function createCampaign(campaignName) {
   copyDirectory(SCAFFOLD_DIR, campaignPath);
 
   // Validate structure
-  const validation = validateRequiredFiles(campaignPath, REQUIRED_CAMPAIGN_FILES);
+  const validation = validateRequiredFiles(
+    campaignPath,
+    REQUIRED_CAMPAIGN_FILES
+  );
   if (!validation.valid) {
     throw new CampaignError(
       `Missing required files: ${validation.missingFiles.join(', ')}`,

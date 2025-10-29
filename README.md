@@ -101,6 +101,7 @@ Any CSV column can be used as a `{{variable}}` in your template.
 ### Schedule Emails
 
 **Preview first (dry run):**
+
 ```bash
 coldr schedule my-campaign --dry-run
 ```
@@ -108,17 +109,20 @@ coldr schedule my-campaign --dry-run
 **Schedule for real:**
 
 Option 1 - Using environment variable:
+
 ```bash
 export RESEND_API_KEY=re_your_api_key
 coldr schedule my-campaign
 ```
 
 Option 2 - Using command option:
+
 ```bash
 coldr schedule my-campaign --resend-api-key re_your_api_key
 ```
 
 Emails are scheduled via Resend API and sent automatically at calculated times. The scheduler:
+
 - Respects work days and hours
 - Randomizes send times for natural distribution
 - Enforces daily limits

@@ -16,40 +16,40 @@ import { LEADS_FILE, SUPPRESSIONS_FILE } from '../constants/index.js';
  */
 function parseCSV(csvContent) {
   const lines = csvContent.trim().split('\n');
-  
+
   if (lines.length < 1) {
     throw new CampaignError('CSV file must have a header row', 'INVALID_CSV');
   }
-  
-  const headers = lines[0].split(',').map(h => h.trim());
-  
+
+  const headers = lines[0].split(',').map((h) => h.trim());
+
   if (!headers.includes('email')) {
     throw new CampaignError('CSV must have an "email" column', 'INVALID_CSV');
   }
-  
+
   const leads = [];
-  
+
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue; // Skip empty lines
-    
-    const values = line.split(',').map(v => v.trim());
-    
+
+    const values = line.split(',').map((v) => v.trim());
+
     if (values.length !== headers.length) {
       throw new CampaignError(
         `Line ${i + 1} has ${values.length} columns, expected ${headers.length}`,
         'INVALID_CSV'
       );
     }
-    
+
     const lead = {};
     headers.forEach((header, index) => {
       lead[header] = values[index];
     });
-    
+
     leads.push(lead);
   }
-  
+
   return leads;
 }
 
@@ -61,18 +61,21 @@ function parseCSV(csvContent) {
  */
 function isSuppressed(email, suppressions) {
   const normalizedEmail = email.toLowerCase().trim();
-  
+
   // Check if email is in suppression list
-  if (suppressions.emails.some(e => e.toLowerCase() === normalizedEmail)) {
+  if (suppressions.emails.some((e) => e.toLowerCase() === normalizedEmail)) {
     return true;
   }
-  
+
   // Check if domain is in suppression list
   const domain = normalizedEmail.split('@')[1];
-  if (domain && suppressions.domains.some(d => d.toLowerCase() === domain.toLowerCase())) {
+  if (
+    domain &&
+    suppressions.domains.some((d) => d.toLowerCase() === domain.toLowerCase())
+  ) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -84,7 +87,7 @@ function isSuppressed(email, suppressions) {
  */
 export function loadLeads(campaignPath) {
   const leadsPath = getCampaignFilePath(campaignPath, LEADS_FILE);
-  
+
   try {
     const csvContent = fs.readFileSync(leadsPath, 'utf-8');
     return parseCSV(csvContent);
@@ -107,18 +110,21 @@ export function loadLeads(campaignPath) {
  */
 export function loadSuppressions(campaignPath) {
   const suppressionsPath = getCampaignFilePath(campaignPath, SUPPRESSIONS_FILE);
-  
+
   try {
     const suppressions = readJsonFile(suppressionsPath);
-    
+
     // Validate structure
-    if (!Array.isArray(suppressions.emails) || !Array.isArray(suppressions.domains)) {
+    if (
+      !Array.isArray(suppressions.emails) ||
+      !Array.isArray(suppressions.domains)
+    ) {
       throw new CampaignError(
         'Suppressions file must have "emails" and "domains" arrays',
         'INVALID_SUPPRESSIONS'
       );
     }
-    
+
     return suppressions;
   } catch (error) {
     if (error instanceof CampaignError) {
@@ -140,21 +146,21 @@ export function loadSuppressions(campaignPath) {
 export function filterLeads(leads, suppressions) {
   const validLeads = [];
   const suppressedLeads = [];
-  
+
   for (const lead of leads) {
     if (!lead.email) {
       suppressedLeads.push({ ...lead, reason: 'Missing email' });
       continue;
     }
-    
+
     if (isSuppressed(lead.email, suppressions)) {
       suppressedLeads.push({ ...lead, reason: 'Suppressed' });
       continue;
     }
-    
+
     validLeads.push(lead);
   }
-  
+
   return { validLeads, suppressedLeads };
 }
 
@@ -167,11 +173,11 @@ export function loadAndFilterLeads(campaignPath) {
   const leads = loadLeads(campaignPath);
   const suppressions = loadSuppressions(campaignPath);
   const { validLeads, suppressedLeads } = filterLeads(leads, suppressions);
-  
+
   return {
     validLeads,
     suppressedLeads,
-    totalLeads: leads.length
+    totalLeads: leads.length,
   };
 }
 
@@ -180,5 +186,5 @@ export function loadAndFilterLeads(campaignPath) {
  */
 export const _internal = {
   parseCSV,
-  isSuppressed
+  isSuppressed,
 };
