@@ -111,7 +111,12 @@ export default async function schedule(campaignName, options = {}) {
   const sendSpinner = createSpinner(
     `Scheduling ${schedule.length} email${schedule.length > 1 ? 's' : ''} via Resend`
   ).start();
-  const results = await scheduleEmailBatch(config, schedule, template);
+  const results = await scheduleEmailBatch(
+    config,
+    schedule,
+    template,
+    sendSpinner
+  );
 
   const scheduled = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;

@@ -53,6 +53,7 @@ my-campaign/
 ```json
 {
   "sender": "Alice <alice@yourstartup.com>",
+  "replyTo": "alice@yourstartup.com",
   "subject": "Quick question about {{company}}",
   "perDay": 20,
   "startDate": "2025-10-28T09:00:00Z",

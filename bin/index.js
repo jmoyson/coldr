@@ -11,6 +11,7 @@ import {
 
 import init from '../src/commands/init.js';
 import schedule from '../src/commands/schedule.js';
+import test from '../src/commands/test.js';
 
 // Configure program
 program.name(APP_NAME).version(APP_VERSION).description(APP_DESCRIPTION);
@@ -41,6 +42,24 @@ program
   .action(async (campaign, options) => {
     try {
       await schedule(campaign, options);
+    } catch (error) {
+      handleCommandError(error);
+    }
+  });
+
+// Test command
+program
+  .command('test')
+  .description('Send a test email')
+  .argument('<campaign>', 'Campaign name')
+  .argument('<to>', 'Recipient email')
+  .option(
+    '--resend-api-key <key>',
+    'Resend API key (overrides RESEND_API_KEY env var)'
+  )
+  .action(async (campaign, to, options) => {
+    try {
+      await test(campaign, to, options);
     } catch (error) {
       handleCommandError(error);
     }

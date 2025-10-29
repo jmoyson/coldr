@@ -35,8 +35,7 @@ describe('Leads Service', () => {
     });
 
     it('should skip empty lines', () => {
-      const csv =
-        'email,name\nalice@example.com,Alice\n\nbob@sample.io,Bob';
+      const csv = 'email,name\nalice@example.com,Alice\n\nbob@sample.io,Bob';
       const leads = parseCSV(csv);
 
       expect(leads).toHaveLength(2);

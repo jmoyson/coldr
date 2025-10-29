@@ -74,10 +74,10 @@ export function calculateSchedule(config, leads) {
   // Parse start date
   let currentDate = new Date(startDate);
 
-  // Ensure start date is today or after 
+  // Ensure start date is today or after
   const safeDate = new Date();
   safeDate.setHours(safeDate.getHours() + 1);
-  
+
   if (currentDate < safeDate) {
     currentDate = safeDate;
   }

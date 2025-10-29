@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { CampaignError } from '../utils/error.utils.js';
+import chalk from 'chalk';
 
 /**
  * Email service for Resend API integration
@@ -62,25 +63,27 @@ function processTemplate(template, lead) {
   return processed;
 }
 
+
 /**
- * Schedule an email via Resend API
+ * Send an email via Resend API
  * @param {Object} params - Email parameters
  * @param {string} params.sender - Sender in format "Name <email@domain.com>"
  * @param {string} params.to - Recipient email
  * @param {string} params.subject - Email subject
  * @param {string} params.html - HTML content
- * @param {string} params.scheduledAt - ISO 8601 datetime string
  * @param {string} params.unsubscribeMailto - Unsubscribe mailto URL
+ * @param {string} [params.scheduledAt] - ISO 8601 datetime string (optional)
  * @returns {Promise<Object>} Resend API response
  * @throws {CampaignError} If scheduling fails
  */
-export async function scheduleEmail({
+export async function sendEmail({
   sender,
   to,
   subject,
   html,
-  scheduledAt,
   unsubscribeMailto,
+  replyTo,    
+  scheduledAt,
 }) {
   try {
     const resend = getResendClient();
@@ -92,6 +95,7 @@ export async function scheduleEmail({
       subject,
       html,
       scheduledAt,
+      replyTo,
       headers: {
         'List-Unsubscribe': unsubscribeMailto,
       },
@@ -113,7 +117,12 @@ export async function scheduleEmail({
  * @param {string} template - HTML template
  * @returns {Promise<Array<Object>>} Array of results with { lead, scheduledAt, success, emailId?, error? }
  */
-export async function scheduleEmailBatch(config, scheduledLeads, template) {
+export async function scheduleEmailBatch(
+  config,
+  scheduledLeads,
+  template,
+  spinner
+) {
   const results = [];
 
   for (const { lead, scheduledAt } of scheduledLeads) {
@@ -121,8 +130,9 @@ export async function scheduleEmailBatch(config, scheduledLeads, template) {
       const html = processTemplate(template, lead);
       const subject = processTemplate(config.subject, lead);
 
-      const response = await scheduleEmail({
+      const response = await sendEmail({
         sender: config.sender,
+        replyTo: config.replyTo,
         to: lead.email,
         subject,
         html,
@@ -136,6 +146,14 @@ export async function scheduleEmailBatch(config, scheduledLeads, template) {
         success: true,
         emailId: response.id,
       });
+
+      spinner.text = chalk.cyan(
+        `📧 Scheduling... ${chalk.bold(`${results.length}/${scheduledLeads.length}`)} emails sent ${chalk.green('✓')}`
+      );
+
+      // Wait 1.5 seconds between requests to avoid rate limit (2 requests per 2 seconds)
+      // eslint-disable-next-line no-undef
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     } catch (error) {
       results.push({
         lead,

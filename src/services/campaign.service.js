@@ -110,4 +110,3 @@ export function validateCampaignStructure(campaignName) {
   const campaignPath = getCampaignPath(campaignName);
   return validateRequiredFiles(campaignPath, REQUIRED_CAMPAIGN_FILES);
 }
-
