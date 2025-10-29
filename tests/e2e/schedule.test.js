@@ -107,7 +107,7 @@ describe('E2E: Schedule Command', () => {
   it('should handle empty leads gracefully', async () => {
     // Empty the leads file
     const leadsPath = path.join(testCampaignPath, 'leads.csv');
-    fs.writeFileSync(leadsPath, 'email,firstName,company\n');
+    fs.writeFileSync(leadsPath, 'email,name,company\n');
 
     const result = await schedule(testCampaignName, { dryRun: true });
 
@@ -118,7 +118,7 @@ describe('E2E: Schedule Command', () => {
   it('should process template variables', async () => {
     // Update template with variables
     const templatePath = path.join(testCampaignPath, 'template.html');
-    const template = '<p>Hi {{firstName}} from {{company}}!</p>';
+    const template = '<p>Hi {{name}} from {{company}}!</p>';
     fs.writeFileSync(templatePath, template);
 
     const result = await schedule(testCampaignName, { dryRun: true });

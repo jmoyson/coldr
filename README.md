@@ -73,7 +73,7 @@ my-campaign/
 **2. Add contacts to `leads.csv`:**
 
 ```csv
-email,firstName,company
+email,name,company
 bob@acme.io,Bob,Acme Corp
 sarah@tech.co,Sarah,Tech Co
 ```
@@ -83,7 +83,7 @@ Any CSV column can be used as a `{{variable}}` in your template.
 **3. Customize `template.html`:**
 
 ```html
-<p>Hi {{firstName}},</p>
+<p>Hi {{name}},</p>
 <p>I noticed {{company}} is working on [relevant topic].</p>
 <p>Quick question: would you be open to a 15-minute intro call?</p>
 <p>Best,<br />Alice</p>

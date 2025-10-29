@@ -17,6 +17,7 @@ vi.mock('../../src/utils/file.utils.js', () => ({
   getCampaignPath: vi.fn((name) => `/test/path/${name}`),
   getCampaignFilePath: vi.fn((path, file) => `${path}/${file}`),
   readJsonFile: vi.fn(),
+  writeJsonFile: vi.fn(),
 }));
 
 vi.mock('../../src/utils/validation.utils.js', () => ({

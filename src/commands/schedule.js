@@ -96,7 +96,7 @@ export default async function schedule(campaignName, options = {}) {
     schedule.slice(0, 5).forEach(({ lead, scheduledAt }) => {
       const date = new Date(scheduledAt);
       logInfo(
-        `  ${date.toLocaleString()} → ${lead.email} ${lead.firstName ? `(${lead.firstName})` : ''}`
+        `  ${date.toLocaleString()} → ${lead.email} ${lead.name ? `(${lead.name})` : ''}`
       );
     });
     if (schedule.length > 5) {

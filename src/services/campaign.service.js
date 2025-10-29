@@ -8,6 +8,7 @@ import {
   getCampaignPath,
   getCampaignFilePath,
   readJsonFile,
+  writeJsonFile,
 } from '../utils/file.utils.js';
 import { validateSchema } from '../utils/validation.utils.js';
 import { configSchema } from '../schemas/config.schema.js';
@@ -57,6 +58,16 @@ export function createCampaign(campaignName) {
 
   // Copy scaffold files
   copyDirectory(SCAFFOLD_DIR, campaignPath);
+
+  // Apply default values to scaffold files
+  try {
+    applyDefaultValues(campaignPath);
+  } catch (error) {
+    throw new CampaignError(
+      `Failed to prepare campaign configuration: ${error.message}`,
+      'CONFIG_TEMPLATE_ERROR'
+    );
+  }
 
   // Validate structure
   const validation = validateRequiredFiles(
@@ -109,4 +120,32 @@ export function loadCampaignConfig(campaignName) {
 export function validateCampaignStructure(campaignName) {
   const campaignPath = getCampaignPath(campaignName);
   return validateRequiredFiles(campaignPath, REQUIRED_CAMPAIGN_FILES);
+}
+
+/**
+ * Apply default values to the scaffold configuration
+ * @param {string} campaignPath - Campaign directory path
+ */
+function applyDefaultValues(campaignPath) {
+  const configPath = getCampaignFilePath(campaignPath, CONFIG_FILE);
+  const config = readJsonFile(configPath);
+
+
+
+  const defaultStart = new Date();
+  
+
+  let startDate = new Date(config.startDate);
+
+  if (startDate < defaultStart) {
+    startDate = defaultStart;
+    startDate.setHours(startDate.getHours() + 1);
+  }
+
+  const templatedConfig = {
+    ...config,
+    startDate: startDate.toISOString(),
+  };
+
+  writeJsonFile(configPath, templatedConfig);
 }

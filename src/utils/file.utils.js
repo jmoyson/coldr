@@ -43,6 +43,15 @@ export function readJsonFile(filePath) {
 }
 
 /**
+ * Serialize an object as JSON to a file
+ * @param {string} filePath - Destination file path
+ * @param {Object} data - Data to serialize
+ */
+export function writeJsonFile(filePath, data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+/**
  * Copy a file from source to destination
  * @param {string} source - Source file path
  * @param {string} destination - Destination file path

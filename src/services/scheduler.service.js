@@ -68,6 +68,13 @@ export function calculateSchedule(config, leads) {
   // Parse start date
   let currentDate = new Date(startDate);
 
+  // Ensure start date is today or after 
+  const safeDate = new Date();
+  safeDate.setHours(safeDate.getHours() + 1, 0, 0, 0);
+  if (currentDate < safeDate) {
+    currentDate = safeDate;
+  }
+
   // Ensure start date is a work day
   if (!isWorkDay(currentDate, workDays)) {
     currentDate = getNextWorkDay(currentDate, workDays);

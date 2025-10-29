@@ -23,7 +23,7 @@ export default function init(campaignName) {
   logInfo(`  ${chalk.cyan('3.')} Add contacts to ${chalk.white('leads.csv')}`);
   logInfo(`  ${chalk.cyan('4.')} Customize ${chalk.white('template.html')}`);
   logInfo(
-    `  ${chalk.cyan('5.')} Run ${chalk.white('coldr schedule ' + campaignName + ' --dry-run')}`
+    `  ${chalk.cyan('5.')} Run ${chalk.white('coldr schedule . --dry-run')}`
   );
   console.log('');
 
