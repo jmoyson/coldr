@@ -46,11 +46,11 @@ export default async function test(campaignName, to, options = {}) {
     
     const response = await sendEmail({
       sender: config.sender,
+      replyTo: config.replyTo,
       to,
       subject,
       html,
       unsubscribeMailto: config.unsubscribeMailto,
-      replyTo: config.replyTo,
     });
     sendSpinner.succeed('Test email sent');
     return response;

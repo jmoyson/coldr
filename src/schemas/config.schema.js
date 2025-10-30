@@ -11,6 +11,7 @@ export const configSchema = z.object({
       /^.+\s*<[^@]+@[^@]+\.[^@]+>$/,
       'Sender must be in format "Name <email@domain.com>"'
     ),
+  replyTo: z.email().optional(),
   subject: z.string().min(1, 'Subject is required'),
   perDay: z.number().int().positive('perDay must be a positive integer'),
   startDate: z
