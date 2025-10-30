@@ -1,4 +1,5 @@
 import fs from 'fs';
+import Papa from 'papaparse';
 import { CampaignError } from '../utils/error.utils.js';
 import { getCampaignFilePath, readJsonFile } from '../utils/file.utils.js';
 import { LEADS_FILE, SUPPRESSIONS_FILE } from '../constants/index.js';
@@ -9,48 +10,44 @@ import { LEADS_FILE, SUPPRESSIONS_FILE } from '../constants/index.js';
  */
 
 /**
- * Parse CSV content into array of objects
+ * Parse CSV content into array of objects using papaparse
  * @param {string} csvContent - CSV file content
  * @returns {Array<Object>} Array of lead objects
  * @throws {CampaignError} If CSV is invalid
  */
 function parseCSV(csvContent) {
-  const lines = csvContent.trim().split('\n');
+  // Parse CSV content using papaparse
+  const result = Papa.parse(csvContent, {
+    header: true,
+    skipEmptyLines: true,
+    trimHeaders: true,
+    dynamicTyping: false,
+  });
 
-  if (lines.length < 1) {
-    throw new CampaignError('CSV file must have a header row', 'INVALID_CSV');
+  if (result.errors && result.errors.length > 0) {
+    throw new CampaignError(
+      `Failed to parse CSV: ${result.errors[0].message}`,
+      'INVALID_CSV'
+    );
   }
 
-  const headers = lines[0].split(',').map((h) => h.trim());
-
-  if (!headers.includes('email')) {
+  if (!result.meta.fields || !result.meta.fields.includes('email')) {
     throw new CampaignError('CSV must have an "email" column', 'INVALID_CSV');
   }
 
-  const leads = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue; // Skip empty lines
-
-    const values = line.split(',').map((v) => v.trim());
-
-    if (values.length !== headers.length) {
+  // Optionally: validate that all rows have same number of fields
+  for (let i = 0; i < result.data.length; i++) {
+    const row = result.data[i];
+    const keys = Object.keys(row);
+    if (keys.length !== result.meta.fields.length) {
       throw new CampaignError(
-        `Line ${i + 1} has ${values.length} columns, expected ${headers.length}`,
+        `Line ${i + 2} has ${keys.length} columns, expected ${result.meta.fields.length}`,
         'INVALID_CSV'
       );
     }
-
-    const lead = {};
-    headers.forEach((header, index) => {
-      lead[header] = values[index];
-    });
-
-    leads.push(lead);
   }
 
-  return leads;
+  return result.data;
 }
 
 /**

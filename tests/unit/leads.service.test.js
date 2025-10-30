@@ -31,7 +31,7 @@ describe('Leads Service', () => {
 
     it('should reject CSV with mismatched columns', () => {
       const csv = 'email,name,company\nalice@example.com,Alice';
-      expect(() => parseCSV(csv)).toThrow('has 2 columns, expected 3');
+      expect(() => parseCSV(csv)).toThrow('Failed to parse CSV: Too few fields: expected 3 fields but parsed 2');
     });
 
     it('should skip empty lines', () => {
