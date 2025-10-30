@@ -79,6 +79,7 @@ export default async function schedule(campaignName, options = {}) {
   console.log(''); // Empty line for spacing
   logInfo(`📧 Campaign: ${campaignName}`);
   logStat('Sender', config.sender);
+  logStat('Reply to', config.replyTo);
   logStat('Subject', config.subject);
   logStat('Emails/day', config.perDay);
   logStat('Total emails', summary.totalEmails);
