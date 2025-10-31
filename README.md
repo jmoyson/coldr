@@ -9,7 +9,7 @@ Two commands. Full control. No dashboards.
 
 ---
 
-### 👉 **Star the repo** and follow [@jeremymoyson](https://x.com/jeremymoyson) for behind-the-scenes updates and launch notes.
+👉 **Star the repo** and follow [@jeremymoyson](https://x.com/jeremymoyson) for behind-the-scenes updates and launch notes.
 
 ## TL;DR — try it in 10 seconds
 
