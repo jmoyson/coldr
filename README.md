@@ -5,12 +5,11 @@
 Two commands. Full control. No dashboards.
 
 [![npm version](https://img.shields.io/npm/v/@jmoyson/coldr.svg)](https://www.npmjs.com/package/@jmoyson/coldr)
-[![Build](https://img.shields.io/github/actions/workflow/status/jmoyson/coldr/ci.yml?label=build)](https://github.com/jmoyson/coldr/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
-⭐️ **Star the repo** and follow [@jeremymoyson](https://x.com/jeremymoyson) for behind-the-scenes updates and launch notes.
+### 👉 **Star the repo** and follow [@jeremymoyson](https://x.com/jeremymoyson) for behind-the-scenes updates and launch notes.
 
 ## TL;DR — try it in 10 seconds
 
