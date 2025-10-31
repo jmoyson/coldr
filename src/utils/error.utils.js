@@ -33,7 +33,7 @@ export function logError(message, error = null) {
  * @param {string} message - Success message
  */
 export function logSuccess(message) {
-  console.log(chalk.green('✓'), chalk.white(message));
+  console.log(chalk.green('✅'), chalk.white(message));
 }
 
 /**
@@ -41,7 +41,7 @@ export function logSuccess(message) {
  * @param {string} message - Info message
  */
 export function logInfo(message) {
-  console.log(chalk.dim(message));
+  console.log(chalk.blue('🧊'), chalk.blue(message));
 }
 
 /**
@@ -49,7 +49,7 @@ export function logInfo(message) {
  * @param {string} message - Warning message
  */
 export function logWarning(message) {
-  console.log(chalk.yellow('⚠'), chalk.yellow(message));
+  console.log(chalk.yellow('⚠️'), chalk.yellow(message));
 }
 
 /**

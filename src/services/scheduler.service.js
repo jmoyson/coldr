@@ -38,18 +38,12 @@ function getNextWorkDay(date, workDays) {
  * @returns {Date} Date with random time in work hours
  */
 function randomizeTimeInWorkHours(date, workHours) {
-  let [startHour, endHour] = workHours;
+  const [startHour, endHour] = workHours;
   const result = new Date(date);
 
-  // make sure start hour is before now
-  const now = new Date();
-  if (startHour < now.getHours()) {
-    startHour = now.getHours() + 1;
-  }
-
-  // Random hour between start and end
+  const hourWindow = Math.max(endHour - startHour, 1);
   const randomHour =
-    Math.floor(Math.random() * (endHour - startHour)) + startHour;
+    Math.floor(Math.random() * hourWindow) + startHour;
   // Random minute
   const randomMinute = Math.floor(Math.random() * 60);
 
@@ -101,14 +95,14 @@ export function calculateSchedule(config, leads) {
 
     schedule.push({
       lead,
-      scheduledAt: scheduledAt.toISOString(),
+      scheduledAt,
     });
 
     emailsScheduledToday++;
   }
 
   // Sort by scheduled time (should already be sorted, but ensures it)
-  schedule.sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt));
+  schedule.sort((a, b) => a.scheduledAt - b.scheduledAt);
 
   return schedule;
 }

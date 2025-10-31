@@ -1,9 +1,15 @@
-import { describe, it, expect } from 'vitest';
-import { _internal } from '../../src/services/email.service.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { _internal, scheduleEmailBatch } from '../../src/services/email.service.js';
 
-const { parseSender, processTemplate } = _internal;
+const { parseSender, processTemplate, resetResendService, setResendService } =
+  _internal;
 
 describe('Email Service', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetResendService();
+  });
+
   describe('parseSender', () => {
     it('should parse valid sender format', () => {
       const sender = 'John Doe <john@example.com>';
@@ -74,7 +80,7 @@ describe('Email Service', () => {
       const template = 'Hello {{name}} from {{company}}!';
       const lead = { name: 'Alice' }; // Missing company
 
-      const result = processTemplate(template, lead);
+      const result = processTemplate(template, lead, {});
       expect(result).toBe('Hello Alice from !');
     });
 
@@ -82,7 +88,7 @@ describe('Email Service', () => {
       const template = 'Hello {{name}} and {{unknown}}!';
       const lead = { name: 'Alice' };
 
-      const result = processTemplate(template, lead);
+      const result = processTemplate(template, lead, {});
       expect(result).toBe('Hello Alice and !');
     });
 
@@ -90,8 +96,44 @@ describe('Email Service', () => {
       const template = '<p>Hi {{name}},</p><p>About {{company}}.</p>';
       const lead = { name: 'Alice', company: 'Example Corp' };
 
-      const result = processTemplate(template, lead);
+      const result = processTemplate(template, lead, {});
       expect(result).toBe('<p>Hi Alice,</p><p>About Example Corp.</p>');
+    });
+  });
+
+  describe('scheduleEmailBatch', () => {
+    it('should call ResendService.sendEmail with the correct parameters', async () => {
+      const config = {
+        sender: 'Test <test@example.com>',
+        replyTo: 'reply@example.com',
+        subject: 'Test Subject',
+      };
+      const scheduledLeads = [
+        {
+          lead: { email: 'lead1@example.com', name: 'Lead 1' },
+          scheduledAt: new Date(),
+        },
+      ];
+      const template = 'Hello {{name}}';
+      const spinner = { text: '' };
+
+      const mockSendEmail = vi.fn().mockResolvedValue({ id: 'email_123' });
+      setResendService({
+        sendEmail: mockSendEmail,
+      });
+
+      await scheduleEmailBatch(config, scheduledLeads, template, spinner, {
+        delayMs: 0,
+      });
+
+      expect(mockSendEmail).toHaveBeenCalledWith({
+        from: 'Test <test@example.com>',
+        to: ['lead1@example.com'],
+        subject: 'Test Subject',
+        html: 'Hello Lead 1',
+        scheduledAt: scheduledLeads[0].scheduledAt.toISOString(),
+        replyTo: 'reply@example.com',
+      });
     });
   });
 });

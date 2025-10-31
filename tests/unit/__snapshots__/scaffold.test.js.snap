@@ -1,0 +1,38 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Unit: Scaffold Output > should match the scaffold snapshot 1`] = `
+"{
+  "sender": "Your Name <hello@sending.yourdomain.com>",
+  "replyTo": "hello@yourdomain.com",
+  "subject": "Quick question about {{company}}",
+  "perDay": 20,
+  "startDate": "2025-10-29T00:00:00Z",
+  "workDays": [1, 2, 3, 4, 5],
+  "workHours": [9, 17]
+}
+"
+`;
+
+exports[`Unit: Scaffold Output > should match the scaffold snapshot 2`] = `
+"email,name,company
+alice@example.com,Alice,Example Corp
+bob@sample.io,Bob,Sample Inc
+charlie@demo.co,Charlie,Demo Co
+"
+`;
+
+exports[`Unit: Scaffold Output > should match the scaffold snapshot 3`] = `
+"<p>Hi {{name}},</p>
+<p>I noticed {{company}} is working on [relevant topic].</p>
+<p>Quick question: would you be open to a 15-minute intro call?</p>
+<p>Best,<br />Alice</p>
+"
+`;
+
+exports[`Unit: Scaffold Output > should match the scaffold snapshot 4`] = `
+"{
+  "emails": [],
+  "domains": []
+}
+"
+`;

@@ -41,8 +41,8 @@ export default async function test(campaignName, to, options = {}) {
   const sendSpinner = createSpinner('Sending test email').start();
 
   try {
-    const html = _internal.processTemplate(template, validLeads[0]);
-    const subject = _internal.processTemplate(config.subject, validLeads[0]);   
+    const html = _internal.processTemplate(template, validLeads[0], config);
+    const subject = _internal.processTemplate(config.subject, validLeads[0], config);   
     
     const response = await sendEmail({
       sender: config.sender,
@@ -50,7 +50,6 @@ export default async function test(campaignName, to, options = {}) {
       to,
       subject,
       html,
-      unsubscribeMailto: config.unsubscribeMailto,
     });
     sendSpinner.succeed('Test email sent');
     return response;

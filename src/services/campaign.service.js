@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { readdirSync } from 'fs';
 import {
   directoryExists,
   createDirectory,
@@ -39,21 +40,28 @@ export function campaignExists(campaignName) {
  * @throws {CampaignError} If campaign already exists or creation fails
  */
 export function createCampaign(campaignName) {
-  if (!campaignName) {
-    throw new CampaignError('Campaign name is required', 'MISSING_NAME');
-  }
-
+  const isCurrentDirectory = campaignName === '.';
   const campaignPath = getCampaignPath(campaignName);
 
-  if (campaignExists(campaignName)) {
+  if (isCurrentDirectory) {
+    const files = readdirSync(campaignPath);
+    if (files.length > 0 && files.some(file => file !== '.git')) {
+      throw new CampaignError(
+        'Current directory is not empty. Please use a different directory.',
+        'DIR_NOT_EMPTY'
+      );
+    }
+  } else if (campaignExists(campaignName)) {
     throw new CampaignError(
       `Campaign "${campaignName}" already exists`,
       'CAMPAIGN_EXISTS'
     );
   }
 
-  // Create campaign directory
-  createDirectory(campaignPath);
+  // Create campaign directory if it's not the current one
+  if (!isCurrentDirectory) {
+    createDirectory(campaignPath);
+  }
 
   // Copy scaffold files
   copyDirectory(SCAFFOLD_DIR, campaignPath);

@@ -12,6 +12,7 @@ import {
 import init from '../src/commands/init.js';
 import schedule from '../src/commands/schedule.js';
 import test from '../src/commands/test.js';
+import hello from '../src/commands/hello.js';
 
 // Configure program
 program.name(APP_NAME).version(APP_VERSION).description(APP_DESCRIPTION);
@@ -20,10 +21,22 @@ program.name(APP_NAME).version(APP_VERSION).description(APP_DESCRIPTION);
 program
   .command('init')
   .description('Initialize a new campaign')
-  .argument('<campaign>', 'Campaign name')
+  .argument('[campaign]', 'Campaign name', 'coldr-campaign')
   .action((campaign) => {
     try {
       init(campaign);
+    } catch (error) {
+      handleCommandError(error);
+    }
+  });
+
+// Hello command
+program
+  .command('hello')
+  .description('Run a demo dry-run in-memory')
+  .action(async () => {
+    try {
+      await hello();
     } catch (error) {
       handleCommandError(error);
     }
@@ -33,7 +46,7 @@ program
 program
   .command('schedule')
   .description('Schedule a campaign')
-  .argument('<campaign>', 'Campaign name')
+  .argument('[campaign]', 'Campaign name', 'coldr-campaign')
   .option('--dry-run', 'Preview schedule without sending emails')
   .option(
     '--resend-api-key <key>',
@@ -51,7 +64,7 @@ program
 program
   .command('test')
   .description('Send a test email')
-  .argument('<campaign>', 'Campaign name')
+  .argument('[campaign]', 'Campaign name', 'coldr-campaign')
   .argument('<to>', 'Recipient email')
   .option(
     '--resend-api-key <key>',

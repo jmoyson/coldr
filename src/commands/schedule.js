@@ -1,14 +1,16 @@
+import chalk from 'chalk';
 import { loadCampaignConfig } from '../services/campaign.service.js';
-import { loadAndFilterLeads } from '../services/leads.service.js';
+import { loadAndFilterLeads, writeLeads } from '../services/leads.service.js';
 import {
   calculateSchedule,
   getScheduleSummary,
 } from '../services/scheduler.service.js';
-import { scheduleEmailBatch } from '../services/email.service.js';
+import { scheduleEmailBatch, _internal } from '../services/email.service.js';
 import {
   logInfo,
   logWarning,
   logStat,
+  logSuccess,
   createSpinner,
   CampaignError,
 } from '../utils/error.utils.js';
@@ -29,6 +31,7 @@ import { TEMPLATE_FILE } from '../constants/index.js';
  */
 export default async function schedule(campaignName, options = {}) {
   const { dryRun = false, resendApiKey } = options;
+  const isDryRun = Boolean(dryRun);
 
   // Set API key from option if provided (takes precedence over env var)
   if (resendApiKey) {
@@ -36,7 +39,7 @@ export default async function schedule(campaignName, options = {}) {
   }
 
   // Check API key early (unless dry run)
-  if (!dryRun && !process.env.RESEND_API_KEY) {
+  if (!isDryRun && !process.env.RESEND_API_KEY) {
     throw new CampaignError(
       'RESEND_API_KEY is required.\nSet it with: export RESEND_API_KEY="re_your_key"\nOr use: --resend-api-key "re_your_key"',
       'MISSING_API_KEY'
@@ -91,19 +94,115 @@ export default async function schedule(campaignName, options = {}) {
   );
 
   // Dry run mode - just show schedule
-  if (dryRun) {
+  if (isDryRun) {
     console.log('');
     logInfo('🔍 DRY RUN - Preview (first 5 emails):');
-    schedule.slice(0, 5).forEach(({ lead, scheduledAt }) => {
-      const date = new Date(scheduledAt);
-      logInfo(
-        `  ${date.toLocaleString()} → ${lead.email} ${lead.name ? `(${lead.name})` : ''}`
+
+    if (schedule.length === 0) {
+      logWarning('No emails to preview');
+    } else {
+      const previewRows = schedule.slice(0, 5).map(({ lead, scheduledAt }) => {
+        const scheduledAtDisplay = new Date(scheduledAt).toLocaleString();
+        const subject = _internal.processTemplate(
+          lead.subject || config.subject,
+          lead,
+          config
+        );
+        const variant = (lead.variant || 'default').toUpperCase();
+
+        return {
+          email: lead.email,
+          variant,
+          subject,
+          scheduledAt: scheduledAtDisplay,
+        };
+      });
+
+      const headers = {
+        email: 'Email',
+        variant: 'Variant',
+        subject: 'Subject',
+        scheduledAt: 'Scheduled At',
+      };
+
+      const columnWidths = Object.entries(headers).reduce(
+        (acc, [key, header]) => {
+          const maxValueLength = previewRows.reduce((max, row) => {
+            const value = row[key] ?? '';
+            return Math.max(max, value.length);
+          }, header.length);
+          acc[key] = maxValueLength;
+          return acc;
+        },
+        {}
       );
-    });
-    if (schedule.length > 5) {
-      logInfo(`  ... and ${schedule.length - 5} more`);
+
+      const formatRow = (row) =>
+        `  ${chalk.white(row.email.padEnd(columnWidths.email))}  ${chalk.white(
+          row.variant.padEnd(columnWidths.variant)
+        )}  ${chalk.white(row.subject.padEnd(columnWidths.subject))}  ${chalk.white(
+          row.scheduledAt.padEnd(columnWidths.scheduledAt)
+        )}`;
+
+      console.log(
+        `  ${chalk.dim(headers.email.padEnd(columnWidths.email))}  ${chalk.dim(
+          headers.variant.padEnd(columnWidths.variant)
+        )}  ${chalk.dim(headers.subject.padEnd(columnWidths.subject))}  ${chalk.dim(
+          headers.scheduledAt.padEnd(columnWidths.scheduledAt)
+        )}`
+      );
+      previewRows.forEach((row) => {
+        console.log(formatRow(row));
+      });
+
+      if (schedule.length > 5) {
+        logInfo(`...and ${schedule.length - 5} more`);
+      }
     }
     console.log('');
+
+    // Update leads with dry-run data
+    const updatedLeads = validLeads.map((lead) => {
+      const scheduledLead = schedule.find((s) => s.lead.email === lead.email);
+      if (!scheduledLead) {
+        return {
+          ...lead,
+          scheduled_at: lead.scheduled_at || '',
+          resend_id: lead.resend_id || '',
+          status: lead.status || '',
+        };
+      }
+
+      return {
+        ...lead,
+        scheduled_at: scheduledLead.scheduledAt.toISOString(),
+        resend_id: '',
+        status: 'scheduled',
+      };
+    });
+
+    writeLeads(campaignPath, updatedLeads);
+    logInfo('🧾 leads.csv updated with scheduled_at, resend_id, and status');
+
+    const variantSummary = schedule.reduce((acc, { lead }) => {
+      const variant = (lead.variant || 'default').toUpperCase();
+      acc[variant] = (acc[variant] || 0) + 1;
+      return acc;
+    }, {});
+
+    const variantSummaryText =
+      Object.keys(variantSummary).length > 0
+        ? Object.entries(variantSummary)
+            .map(([variant, count]) => `${variant}=${count}`)
+            .join(', ')
+        : 'none';
+
+    logSuccess(
+      `${schedule.length} email${
+        schedule.length === 1 ? '' : 's'
+      } scheduled (variants: ${variantSummaryText})`
+    );
+
     return { scheduled: 0, failed: 0, dryRun: true, schedule };
   }
 
@@ -124,10 +223,71 @@ export default async function schedule(campaignName, options = {}) {
 
   if (failed === 0) {
     sendSpinner.succeed(
-      `Successfully scheduled ${scheduled} email${scheduled > 1 ? 's' : ''}`
+      `✅ Successfully scheduled ${scheduled} email${scheduled > 1 ? 's' : ''}`
     );
   } else {
     sendSpinner.warn(`Scheduled ${scheduled}, failed ${failed}`);
+  }
+
+  // Update leads with real-run data
+  const updatedLeads = validLeads.map((lead) => {
+    const result = results.find((r) => r.lead.email === lead.email);
+
+    if (!result) {
+      return {
+        ...lead,
+        scheduled_at: lead.scheduled_at || '',
+        resend_id: lead.resend_id || '',
+        status: lead.status || '',
+      };
+    }
+
+    const baseLead = {
+      ...lead,
+      scheduled_at: result.scheduledAt.toISOString(),
+    };
+
+    if (result.success) {
+      return {
+        ...baseLead,
+        resend_id: result.emailId || '',
+        status: 'scheduled',
+      };
+    }
+
+    return {
+      ...baseLead,
+      resend_id: '',
+      status: 'failed',
+    };
+  });
+
+  writeLeads(campaignPath, updatedLeads);
+  logInfo('🧾 leads.csv updated with scheduled_at, resend_id, and status');
+
+  const variantSummary = results
+    .filter((result) => result.success)
+    .reduce((acc, { lead }) => {
+      const variant = (lead.variant || 'default').toUpperCase();
+      acc[variant] = (acc[variant] || 0) + 1;
+      return acc;
+    }, {});
+
+  const variantSummaryText =
+    Object.keys(variantSummary).length > 0
+      ? Object.entries(variantSummary)
+          .map(([variant, count]) => `${variant}=${count}`)
+          .join(', ')
+      : 'none';
+
+  if (scheduled > 0) {
+    logSuccess(
+      `${scheduled} email${
+        scheduled === 1 ? '' : 's'
+      } sent (variants: ${variantSummaryText})`
+    );
+  } else {
+    logWarning('0 emails sent (variants: none)');
   }
 
   if (failed > 0) {
@@ -136,7 +296,7 @@ export default async function schedule(campaignName, options = {}) {
     results
       .filter((r) => !r.success)
       .forEach(({ lead, error }) => {
-        logInfo(`  ${lead.email}: ${error}`);
+        logWarning(`  ${lead.email}: ${error}`);
       });
   }
 

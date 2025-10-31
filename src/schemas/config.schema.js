@@ -32,7 +32,6 @@ export const configSchema = z.object({
       ([start, end]) => start < end,
       'Work hours start must be before end'
     ),
-  unsubscribeMailto: z.string().url('unsubscribeMailto must be a valid URL'),
 });
 
 /**

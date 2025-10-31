@@ -1,5 +1,5 @@
 import { createCampaign } from '../services/campaign.service.js';
-import { logInfo, createSpinner } from '../utils/error.utils.js';
+import { logInfo, logSuccess, createSpinner } from '../utils/error.utils.js';
 import chalk from 'chalk';
 
 /**
@@ -7,24 +7,18 @@ import chalk from 'chalk';
  * @param {string} campaignName - Campaign name
  * @returns {string} Campaign directory path
  */
-export default function init(campaignName) {
+export default function init(campaignName = 'coldr-campaign') {
   const spinner = createSpinner('Creating campaign').start();
   const campaignPath = createCampaign(campaignName);
   spinner.succeed('Campaign created');
 
   console.log('');
-  logInfo(`📁 ${chalk.cyan(campaignPath)}`);
+  logSuccess('Campaign ready.');
+  logInfo(`Folder: ${chalk.cyan(campaignPath)}`);
   console.log('');
-  logInfo('Next steps:');
-  logInfo(`  ${chalk.cyan('1.')} cd ${campaignName}`);
-  logInfo(
-    `  ${chalk.cyan('2.')} Edit ${chalk.white('config.json')} with your settings`
-  );
-  logInfo(`  ${chalk.cyan('3.')} Add contacts to ${chalk.white('leads.csv')}`);
-  logInfo(`  ${chalk.cyan('4.')} Customize ${chalk.white('template.html')}`);
-  logInfo(
-    `  ${chalk.cyan('5.')} Run ${chalk.white('coldr schedule . --dry-run')}`
-  );
+  logInfo('Run:');
+  console.log(`  ${chalk.white('export RESEND_API_KEY=re_*****')}`);
+  console.log(`  ${chalk.white('coldr schedule --dry-run')}`);
   console.log('');
 
   return campaignPath;

@@ -30,10 +30,6 @@ describe('Campaign Service - Domain Logic', () => {
   });
 
   describe('createCampaign', () => {
-    it('should reject empty campaign name', () => {
-      expect(() => createCampaign('')).toThrow(CampaignError);
-      expect(() => createCampaign('')).toThrow('Campaign name is required');
-    });
 
     it('should reject duplicate campaign name', () => {
       fileUtils.directoryExists.mockReturnValue(true);

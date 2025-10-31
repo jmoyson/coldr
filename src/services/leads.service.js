@@ -100,6 +100,35 @@ export function loadLeads(campaignPath) {
 }
 
 /**
+ * Write leads to campaign CSV file
+ * @param {string} campaignPath - Campaign directory path
+ * @param {Array<Object>} leads - Array of lead objects
+ * @throws {CampaignError} If file cannot be written
+ */
+export function writeLeads(campaignPath, leads) {
+  const leadsPath = getCampaignFilePath(campaignPath, LEADS_FILE);
+
+  try {
+    const csvContent = Papa.unparse(leads);
+    const tempPath = `${leadsPath}.${process.pid}.${Date.now()}.tmp`;
+
+    try {
+      fs.writeFileSync(tempPath, csvContent, 'utf-8');
+      fs.renameSync(tempPath, leadsPath);
+    } finally {
+      if (fs.existsSync(tempPath)) {
+        fs.rmSync(tempPath, { force: true });
+      }
+    }
+  } catch (error) {
+    throw new CampaignError(
+      `Failed to write leads: ${error.message}`,
+      'LEADS_WRITE_FAILED'
+    );
+  }
+}
+
+/**
  * Load suppressions from campaign JSON file
  * @param {string} campaignPath - Campaign directory path
  * @returns {Object} Suppressions object with emails and domains arrays
