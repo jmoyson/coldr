@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   calculateSchedule,
   getScheduleSummary,
@@ -72,6 +72,18 @@ describe('Scheduler Service', () => {
       workHours: [9, 17],
     };
 
+    const fixedNow = new Date('2025-10-25T09:00:00Z');
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(fixedNow);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.useRealTimers();
+    });
+
     it('should return empty array for empty leads', () => {
       const schedule = calculateSchedule(config, []);
       expect(schedule).toEqual([]);
@@ -109,22 +121,51 @@ describe('Scheduler Service', () => {
         { email: 'test2@example.com' },
       ];
 
-      const schedule = calculateSchedule(configFriday, leads);
+      const mathRandomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+      const schedule = calculateSchedule(
+        configFriday,
+        leads
+      );
 
       const firstDate = new Date(schedule[0].scheduledAt);
       const secondDate = new Date(schedule[1].scheduledAt);
 
       expect(firstDate.getDay()).toBe(5); // Friday
       expect(secondDate.getDay()).toBe(1); // Monday (skipped weekend)
+
+      mathRandomSpy.mockRestore();
     });
 
     it('should schedule within work hours', () => {
+      const randomSequence = [0.25, 0.5];
+      const mathRandomSpy = vi
+        .spyOn(Math, 'random')
+        .mockImplementation(() => randomSequence.shift() ?? 0);
+
       const leads = [{ email: 'test@example.com' }];
       const schedule = calculateSchedule(config, leads);
 
       const scheduledDate = new Date(schedule[0].scheduledAt);
       expect(scheduledDate.getHours()).toBeGreaterThanOrEqual(9);
       expect(scheduledDate.getHours()).toBeLessThan(17);
+      expect(scheduledDate.getMinutes()).toBeGreaterThanOrEqual(0);
+      expect(scheduledDate.getMinutes()).toBeLessThan(60);
+
+      mathRandomSpy.mockRestore();
+    });
+
+    it('should align randomized times with local timezone work hours', () => {
+      const mathRandomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+      const leads = [{ email: 'test@example.com' }];
+
+      const schedule = calculateSchedule(config, leads);
+      const scheduledDate = new Date(schedule[0].scheduledAt);
+
+      expect(scheduledDate.getHours()).toBe(9);
+      expect(scheduledDate.getMinutes()).toBe(0);
+
+      mathRandomSpy.mockRestore();
     });
   });
 
