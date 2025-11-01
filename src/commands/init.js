@@ -17,8 +17,8 @@ export default function init(campaignName = 'coldr-campaign') {
   logInfo(`Folder: ${chalk.cyan(campaignPath)}`);
   console.log('');
   logInfo('Run:');
-  console.log(`  ${chalk.white('export RESEND_API_KEY=re_*****')}`);
   console.log(`  ${chalk.white('coldr schedule --dry-run')}`);
+  console.log(`  ${chalk.white('coldr schedule --resend-api-key re_*****')}`);
   console.log('');
 
   return campaignPath;

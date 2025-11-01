@@ -137,14 +137,11 @@ Optional list of emails and domains you want to skip (e.g., unsubscribes, compet
 
 ---
 
-## Environment Variables
+## API Keys
 
-| Variable         | Description                              |
-| ---------------- | ---------------------------------------- |
-| `RESEND_API_KEY` | Used for live sends and test deliveries. |
-
-If missing, Coldr automatically runs in dry-run mode.
-Explicit sends without a key show a clear `MISSING_API_KEY` message.
+- Use `--resend-api-key <key>` to authorize live sends.
+- Leave the flag off and Coldr stays in dry-run mode.
+- Preview sends (`coldr preview --to`) without a key show a clear `MISSING_API_KEY` message.
 
 ---
 

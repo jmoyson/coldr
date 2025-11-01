@@ -4,23 +4,41 @@ import chalk from 'chalk';
 
 const resendServiceRef = {
   instance: undefined,
+  apiKey: undefined,
 };
 
-const createResendService = () => {
-  if (!resendServiceRef.instance) {
-    resendServiceRef.instance = new ResendService();
+const createResendService = (apiKey) => {
+  if (resendServiceRef.instance) {
+    if (resendServiceRef.apiKey === undefined) {
+      return resendServiceRef.instance;
+    }
+
+    if (apiKey && apiKey !== resendServiceRef.apiKey) {
+      resendServiceRef.instance = new ResendService(apiKey);
+      resendServiceRef.apiKey = apiKey;
+    }
+    return resendServiceRef.instance;
   }
+
+  if (!apiKey) {
+    throw new CampaignError('Resend API key is required', 'MISSING_API_KEY');
+  }
+
+  resendServiceRef.instance = new ResendService(apiKey);
+  resendServiceRef.apiKey = apiKey;
   return resendServiceRef.instance;
 };
 
-export const getResendService = () => createResendService();
+export const getResendService = (apiKey) => createResendService(apiKey);
 
 export const resetResendService = () => {
   resendServiceRef.instance = undefined;
+  resendServiceRef.apiKey = undefined;
 };
 
 export const setResendService = (service) => {
   resendServiceRef.instance = service;
+  resendServiceRef.apiKey = undefined;
 };
 
 /**
@@ -79,12 +97,13 @@ export async function sendEmail({
   to,
   subject,
   html,
-  replyTo,    
+  replyTo,
   scheduledAt,
+  resendApiKey,
 }) {
   const { name, email } = parseSender(sender);
 
-  return getResendService().sendEmail({
+  return getResendService(resendApiKey).sendEmail({
     from: `${name} <${email}>`,
     to: [to],
     subject,
@@ -108,7 +127,7 @@ export async function scheduleEmailBatch(
   spinner,
   options = {}
 ) {
-  const { delayMs = 1500 } = options;
+  const { delayMs = 1500, resendApiKey } = options;
   const results = [];
 
   for (const { lead, scheduledAt } of scheduledLeads) {
@@ -123,6 +142,7 @@ export async function scheduleEmailBatch(
         subject,
         html,
         scheduledAt: scheduledAt.toISOString(),
+        resendApiKey,
       });
 
       results.push({

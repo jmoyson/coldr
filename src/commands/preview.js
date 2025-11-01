@@ -24,15 +24,11 @@ import {
  * @param {Object} options - Command options
  * @param {string} [options.lead] - Specific lead email to preview
  * @param {string} [options.to] - Recipient email (sends real email when provided)
- * @param {string} [options.resendApiKey] - Resend API key (overrides env var)
+ * @param {string} [options.resendApiKey] - Resend API key (required to send)
  * @returns {Promise<Object>} Preview result
  */
 export default async function preview(campaignName, options = {}) {
   const { lead: leadEmail, to, resendApiKey } = options;
-
-  if (resendApiKey) {
-    process.env.RESEND_API_KEY = resendApiKey;
-  }
 
   const configSpinner = createSpinner('Loading campaign configuration').start();
   const config = loadCampaignConfig(campaignName);
@@ -88,9 +84,9 @@ export default async function preview(campaignName, options = {}) {
     };
   }
 
-  if (!process.env.RESEND_API_KEY) {
+  if (!resendApiKey) {
     throw new CampaignError(
-      'RESEND_API_KEY is required to send preview emails.\nSet it with: export RESEND_API_KEY="re_your_key"\nOr use: --resend-api-key "re_your_key"',
+      'Resend API key is required to send preview emails. Pass --resend-api-key <key>.',
       'MISSING_API_KEY'
     );
   }
@@ -103,6 +99,7 @@ export default async function preview(campaignName, options = {}) {
       to,
       subject,
       html,
+      resendApiKey,
     });
     sendSpinner.succeed('Preview email sent');
     logSuccess(`Email sent to ${to}`);

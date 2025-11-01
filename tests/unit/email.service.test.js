@@ -124,6 +124,7 @@ describe('Email Service', () => {
 
       await scheduleEmailBatch(config, scheduledLeads, template, spinner, {
         delayMs: 0,
+        resendApiKey: 're_test_key',
       });
 
       expect(mockSendEmail).toHaveBeenCalledWith({

@@ -53,7 +53,7 @@ program
   .option('--dry-run', 'Preview schedule without sending emails')
   .option(
     '--resend-api-key <key>',
-    'Resend API key (overrides RESEND_API_KEY env var)'
+    'Resend API key (required to send emails)'
   )
   .action(async (campaign, options) => {
     try {
@@ -74,7 +74,7 @@ program
   .option('--to <email>', 'Recipient email (overrides positional argument)')
   .option(
     '--resend-api-key <key>',
-    'Resend API key (overrides RESEND_API_KEY env var)'
+    'Resend API key (required to send emails)'
   )
   .action(async (campaign, recipient, options) => {
     try {

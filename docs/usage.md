@@ -168,16 +168,9 @@ To actually schedule emails through Resend, run:
 coldr schedule --resend-api-key re_your_api_key
 ```
 
-or, if your key is already set as an environment variable:
-
-```bash
-coldr schedule
-```
-
 **Rules:**
 
-- Either the `RESEND_API_KEY` env variable **or** the `--resend-api-key` option is required.
-- The CLI option overrides the environment variable if both are present.
+- `--resend-api-key` is required for live sends. Leave it out to stay in dry-run mode.
 
 Coldr will:
 
@@ -232,7 +225,7 @@ You can run `coldr --help` to see a list of available commands and options.
 
 ## 11. Troubleshooting
 
-- **No emails sent?** → You must provide either `--resend-api-key` or have `RESEND_API_KEY` set.
+- **No emails sent?** → Pass `--resend-api-key` when you want to leave dry-run mode.
 - **Wrong timing?** → Check `workDays` and `workHours` in `config.json`, also check your timezone!
 - **Duplicate sends?** → Ensure each lead’s email is unique.
 - **Missing variables?** → Confirm your template placeholders match CSV column names.

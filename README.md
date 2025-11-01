@@ -80,6 +80,15 @@ Two commands, no setup, no guessing.
 - 🧾 **Automatic logging** - `scheduled_at`, `resend_id`, and `status` get written back into `leads.csv`
 - ✉️ **Resend integration** - clean scheduling, safe throttling, and retry logic built in
 
+## Troubleshooting
+
+- **Missing API key errors?** `schedule` stays in dry-run until you pass `--resend-api-key <key>`.
+- **`leads.csv` won't load?** Save it as UTF-8 with a clean header row; no blank first line, no trailing commas.
+- **Variables coming through blank?** Ensure your template placeholders exactly match the CSV headers (case-sensitive, no spaces).
+- **Sends firing at odd hours?** Align `workDays`/`workHours` in `config.json` with your local timezone or set the `TZ` env var.
+- **Retry loop or throttling warnings?** Check `throttle` and `maxAttempts` in `config.json`; aggressive values slow delivery.
+- **Still stuck?** Ping me on X [@jeremymoyson](https://x.com/jeremymoyson).
+
 ## Next steps
 
 - ⭐️ **Star this repo** - support the project and get notified on updates

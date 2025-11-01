@@ -18,8 +18,6 @@ describe('E2E: One-Liner', () => {
     originalCwd = process.cwd();
     process.chdir(testPath);
 
-    process.env.RESEND_API_KEY = 're_dummy_key';
-
     // Mock console methods to avoid cluttering test output
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});

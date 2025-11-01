@@ -12,7 +12,6 @@ import {
   logStat,
   logSuccess,
   createSpinner,
-  CampaignError,
 } from '../utils/error.utils.js';
 import {
   getCampaignPath,
@@ -31,19 +30,14 @@ import { TEMPLATE_FILE } from '../constants/index.js';
  */
 export default async function schedule(campaignName, options = {}) {
   const { dryRun = false, resendApiKey } = options;
-  const isDryRun = Boolean(dryRun);
-
-  // Set API key from option if provided (takes precedence over env var)
-  if (resendApiKey) {
-    process.env.RESEND_API_KEY = resendApiKey;
-  }
+  let isDryRun = Boolean(dryRun);
 
   // Check API key early (unless dry run)
-  if (!isDryRun && !process.env.RESEND_API_KEY) {
-    throw new CampaignError(
-      'RESEND_API_KEY is required.\nSet it with: export RESEND_API_KEY="re_your_key"\nOr use: --resend-api-key "re_your_key"',
-      'MISSING_API_KEY'
+  if (!isDryRun && !resendApiKey) {
+    logWarning(
+      'Resend API key missing — falling back to dry-run. Pass --resend-api-key <key> to send for real.'
     );
+    isDryRun = true;
   }
 
   // Load and validate campaign configuration
@@ -215,7 +209,8 @@ export default async function schedule(campaignName, options = {}) {
     config,
     schedule,
     template,
-    sendSpinner
+    sendSpinner,
+    { resendApiKey }
   );
 
   const scheduled = results.filter((r) => r.success).length;

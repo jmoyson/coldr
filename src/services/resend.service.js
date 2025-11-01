@@ -2,11 +2,10 @@ import { Resend } from 'resend';
 import { CampaignError } from '../utils/error.utils.js';
 
 export class ResendService {
-  constructor() {
-    const apiKey = process.env.RESEND_API_KEY;
+  constructor(apiKey) {
     if (!apiKey) {
       throw new CampaignError(
-        'RESEND_API_KEY environment variable is required',
+        'Resend API key is required',
         'MISSING_API_KEY'
       );
     }

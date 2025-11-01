@@ -22,7 +22,6 @@ describe('E2E: Preview Command', () => {
       fs.rmSync(campaignPath, { recursive: true, force: true });
     }
     emailInternal.resetResendService();
-    delete process.env.RESEND_API_KEY;
     vi.restoreAllMocks();
   });
 
@@ -50,11 +49,10 @@ describe('E2E: Preview Command', () => {
     emailInternal.setResendService({
       sendEmail: mockSendEmail,
     });
-    process.env.RESEND_API_KEY = 're_test_key';
-
     const result = await preview(campaignName, {
       to: 'preview@example.com',
       lead: 'charlie@demo.co',
+      resendApiKey: 're_test_key',
     });
 
     expect(result.sent).toBe(true);
@@ -70,13 +68,11 @@ describe('E2E: Preview Command', () => {
     );
   });
 
-  it('should throw when sending without RESEND_API_KEY', async () => {
-    delete process.env.RESEND_API_KEY;
-
+  it('should throw when sending without a resendApiKey', async () => {
     await expect(
       preview(campaignName, {
         to: 'preview@example.com',
       })
-    ).rejects.toThrow('RESEND_API_KEY is required to send preview emails');
+    ).rejects.toThrow('Resend API key is required to send preview emails');
   });
 });
