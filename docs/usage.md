@@ -156,7 +156,7 @@ You’ll see a preview of:
 - first few scheduled emails
 - any missing variables or formatting issues
 
-**Nothing is sent during a dry-run**. It only simulates scheduling and logs results.
+**Nothing is sent during a dry-run**. It only simulates scheduling, logs results, and marks each previewed lead with `resend_id: "dry-run"` in `leads.csv` so you can tell the difference later.
 
 ---
 

@@ -176,7 +176,7 @@ export default async function schedule(campaignName, options = {}) {
       return {
         ...lead,
         scheduled_at: scheduledLead.scheduledAt.toISOString(),
-        resend_id: '',
+        resend_id: 'dry-run',
         status: 'scheduled',
       };
     });

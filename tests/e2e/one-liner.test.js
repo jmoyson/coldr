@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+import Papa from 'papaparse';
 import init from '../../src/commands/init.js';
 import schedule from '../../src/commands/schedule.js';
 
@@ -53,6 +54,17 @@ alice@domain.com,Alice,Domain Inc,var-a,Custom Subject A\nbob@domain.com,Bob,Dom
     expect(updatedCsv).toContain('scheduled_at');
     expect(updatedCsv).toContain('status');
     expect(updatedCsv).toContain('resend_id');
+
+    const { data: parsedRows } = Papa.parse(updatedCsv, {
+      header: true,
+      skipEmptyLines: true,
+    });
+
+    parsedRows.forEach((row) => {
+      expect(row.scheduled_at).toMatch(/T\d{2}:\d{2}:/);
+      expect(row.status).toBe('scheduled');
+      expect(row.resend_id).toBe('dry-run');
+    });
 
     // 5. Assert that the dry-run output contains variant info
     const consoleOutput = vi.mocked(console.log).mock.calls.flat().join('\n');

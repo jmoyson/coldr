@@ -151,7 +151,7 @@ Explicit sends without a key show a clear `MISSING_API_KEY` message.
 ## Logging Behaviour
 
 - Writes to `leads.csv` are atomic (`tmp → rename`) to prevent corruption.
-- Dry-runs write empty `resend_id` values and `status: scheduled`.
+- Dry-runs write `resend_id: "dry-run"` with `status: scheduled`.
 - Failures log as `status: failed`.
 - CLI output summarizes sent, failed, and suppressed counts at the end of each run.
 
