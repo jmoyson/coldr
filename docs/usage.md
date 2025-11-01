@@ -61,11 +61,11 @@ Edit `config.json` to define how your campaign behaves:
 
 ```json
 {
-  "sender": "Your Name <you@sending.yourdomain.com>",
-  "replyTo": "you@yourdomain.com",
+  "sender": "Your Name <hello@sending.yourdomain.com>",
+  "replyTo": "hello@yourdomain.com",
   "subject": "Quick question about {{company}}",
   "perDay": 20,
-  "startDate": "2025-10-31T09:00:00Z",
+  "startDate": "2025-10-29T00:00:00Z",
   "workDays": [1, 2, 3, 4, 5],
   "workHours": [9, 17]
 }
@@ -84,9 +84,10 @@ Edit `config.json` to define how your campaign behaves:
 Update `leads.csv` with your contacts:
 
 ```csv
-email,name
-alice@domain.com,Alice
-charlie@piedpiper.com,Charlie
+email,name,company
+alice@example.com,Alice,Example Corp
+bob@sample.io,Bob,Sample Inc
+charlie@demo.co,Charlie,Demo Co
 ```
 
 **Required:**
