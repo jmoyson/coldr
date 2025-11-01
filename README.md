@@ -21,6 +21,11 @@ npx @jmoyson/coldr@latest hello
 
 Instant fake campaign preview. No setup, no key, just proof it works.
 
+## Requirements
+
+- Node.js 18 or newer (the CLI checks this at startup and guides you to upgrade if needed).
+- A Resend API key (optional for preview and dry-run, but required for sending real emails).
+
 ## Want to send your own?
 
 Init a campaign:

@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
+import { ensureSupportedNodeVersion } from '../src/utils/runtime.utils.js';
 import { program } from 'commander';
+
+ensureSupportedNodeVersion();
 
 import { handleCommandError } from '../src/utils/error.utils.js';
 import {
