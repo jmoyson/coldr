@@ -69,4 +69,14 @@ describe('E2E: Preview Command', () => {
       })
     );
   });
+
+  it('should throw when sending without RESEND_API_KEY', async () => {
+    delete process.env.RESEND_API_KEY;
+
+    await expect(
+      preview(campaignName, {
+        to: 'preview@example.com',
+      })
+    ).rejects.toThrow('RESEND_API_KEY is required to send preview emails');
+  });
 });
