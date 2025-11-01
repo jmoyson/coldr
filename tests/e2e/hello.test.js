@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import hello from '../../src/commands/hello.js';
+import { SHARE_HINT_TEXT } from '../../src/constants/index.js';
 
 describe('E2E: Hello Command', () => {
   const testDir = 'test-hello';
@@ -44,7 +45,7 @@ describe('E2E: Hello Command', () => {
     expect(consoleOutput).toContain('Example Corp');
     expect(consoleOutput).toContain('Demo scheduled');
     expect(consoleOutput).toContain('Next steps for builders');
-    expect(consoleOutput).toContain('Star the repo');
+    expect(consoleOutput).toContain(SHARE_HINT_TEXT);
     expect(consoleOutput).toContain('jeremymoyson');
 
     expect(afterFiles).toEqual(beforeFiles);
