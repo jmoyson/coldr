@@ -18,7 +18,7 @@ import {
   getCampaignFilePath,
   readTextFile,
 } from '../utils/file.utils.js';
-import { TEMPLATE_FILE } from '../constants/index.js';
+import { TEMPLATE_FILE, SHARE_HINT } from '../constants/index.js';
 
 /**
  * Schedule a campaign
@@ -194,7 +194,9 @@ export default async function schedule(campaignName, options = {}) {
     logSuccess(
       `${schedule.length} email${
         schedule.length === 1 ? '' : 's'
-      } scheduled (variants: ${variantSummaryText})`
+      } scheduled (variants: ${variantSummaryText})${
+        schedule.length > 0 ? ` — ${SHARE_HINT}` : ''
+      }`
     );
 
     return { scheduled: 0, failed: 0, dryRun: true, schedule };
@@ -277,9 +279,9 @@ export default async function schedule(campaignName, options = {}) {
 
   if (scheduled > 0) {
     logSuccess(
-      `${scheduled} email${
-        scheduled === 1 ? '' : 's'
-      } sent (variants: ${variantSummaryText})`
+      `${scheduled} email${scheduled === 1 ? '' : 's'} sent (variants: ${variantSummaryText})${
+        failed === 0 ? ` — ${SHARE_HINT}` : ''
+      }`
     );
   } else {
     logWarning('0 emails sent (variants: none)');

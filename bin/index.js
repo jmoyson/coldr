@@ -10,6 +10,7 @@ import {
   APP_NAME,
   APP_VERSION,
   APP_DESCRIPTION,
+  SHARE_HINT,
 } from '../src/constants/index.js';
 
 import init from '../src/commands/init.js';
@@ -18,7 +19,10 @@ import preview from '../src/commands/preview.js';
 import hello from '../src/commands/hello.js';
 
 // Configure program
-program.name(APP_NAME).version(APP_VERSION).description(APP_DESCRIPTION);
+program
+  .name(APP_NAME)
+  .version(`${APP_VERSION}\n${SHARE_HINT}`)
+  .description(APP_DESCRIPTION);
 
 // Init command
 program

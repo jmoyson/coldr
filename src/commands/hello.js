@@ -5,6 +5,7 @@ import {
   getScheduleSummary,
 } from '../services/scheduler.service.js';
 import { _internal as emailInternal } from '../services/email.service.js';
+import { SHARE_HINT_TEXT, GITHUB_REPO_URL } from '../constants/index.js';
 
 /**
  * Run an in-memory demo dry-run for SaaS builders.
@@ -130,17 +131,19 @@ export default async function hello() {
   console.log('');
   logInfo('Next steps for builders:');
   console.log(
-    `  ${chalk.cyan('›')} ${chalk.white('Run')} ${chalk.cyan(
+    `  ${chalk.cyan('›')} ${chalk.white('Spin up your first live run with')} ${chalk.cyan(
       'npx @jmoyson/coldr@latest init'
-    )} ${chalk.white('to scaffold this exact setup locally.')}`
+    )} ${chalk.white('and keep the momentum going.')}`
   );
   console.log(
-    `  ${chalk.cyan('›')} ${chalk.white('Star the repo')} ${chalk.dim(
-      '(https://github.com/jmoyson/coldr)'
-    )} ${chalk.white('to follow new drops.')}`
+    `  ${chalk.cyan('›')} ${chalk.white(`${SHARE_HINT_TEXT}:`)} ${chalk.cyan(
+      GITHUB_REPO_URL
+    )}`
   );
   console.log(
-    `  ${chalk.cyan('›')} ${chalk.white('Ping or follow on X for playbooks and updates.')} ${chalk.dim('(https://x.com/jeremymoyson)')}`
+    `  ${chalk.cyan('›')} ${chalk.white('Swap experiments or grab playbooks:')} ${chalk.cyan(
+      'https://x.com/jeremymoyson'
+    )}`
   );
   console.log('');
   console.log(chalk.italic.dim('Made with 🧊 for devs shipping SaaS who want outreach to feel native.'));
