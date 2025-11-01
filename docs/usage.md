@@ -111,13 +111,11 @@ Edit `template.html` with your email body. You can mix static text and variables
 </p>
 
 <p>
-  We’ve built a simple way to manage outreach at scale — without losing the
+  We’ve built a simple way to manage outreach at scale without losing the
   personal touch.
 </p>
 
-<p><b>{{cta}}</b></p>
-
-<p>Best,<br />Your Name</p>
+<p>Best,<br />Jeremy</p>
 ```
 
 Coldr replaces variables automatically. Missing variables remain blank.
