@@ -9,11 +9,14 @@ Two commands. Full control. No dashboards.
 
 ---
 
-👉 **Star the repo** and follow [@jeremymoyson](https://x.com/jeremymoyson) for behind-the-scenes updates and launch notes.
+👉 **Star the repo** and follow [@jeremymoyson](https://x.com/jeremymoyson) for behind-the-scenes updates and launch notes.  
+💬 Join the discussion: [Launch Thread](https://github.com/jmoyson/coldr/discussions) • [Ideas](https://github.com/jmoyson/coldr/discussions)
 
 ## TL;DR — try it in 10 seconds
 
-[TODO] - Add GIF here
+<p align="center">
+  <img src="assets/hello.gif" width="640" alt="Coldr hello">
+</p>
 
 ```bash
 npx @jmoyson/coldr@latest hello
@@ -28,21 +31,26 @@ Instant fake campaign preview. No setup, no key, just proof it works.
 
 ## Want to send your own?
 
-Init a campaign:
+<p align="center">
+  <img src="assets/demo.gif" width="640" alt="Coldr demo">
+</p>
+
+### Init a campaign
 
 ```bash
 npx @jmoyson/coldr@latest init
 cd coldr-campaign
-# Edit config.json, leads.csv, and template.html as you like
+
+# Edit config.json, leads.csv, suppressions.json and template.html as you like
 
 # Optional: preview a single email
-coldr preview
+npx @jmoyson/coldr@latest preview
 
 # Dry-run first to check everything looks good
-coldr schedule --dry-run
+npx @jmoyson/coldr@latest schedule --dry-run
 
 # Then run the campaign for real:
-coldr schedule --resend-api-key <your-api-key>
+npx @jmoyson/coldr@latest schedule --resend-api-key <your-api-key>
 ```
 
 That’s it! Your first campaign is live, now watch cold leads warm up 🔥.
