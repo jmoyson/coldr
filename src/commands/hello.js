@@ -1,82 +1,147 @@
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
+import chalk from 'chalk';
 import { logInfo, logSuccess } from '../utils/error.utils.js';
-import schedule from './schedule.js';
+import {
+  calculateSchedule,
+  getScheduleSummary,
+} from '../services/scheduler.service.js';
+import { _internal as emailInternal } from '../services/email.service.js';
 
+/**
+ * Run an in-memory demo dry-run for SaaS builders.
+ * Shows the scheduling flow without touching the filesystem.
+ */
 export default async function hello() {
-  logInfo('Running a demo dry-run...');
+  const config = {
+    sender: 'Jeremy from Coldr <jeremy@coldr.jmoyson.com>',
+    replyTo: 'support@coldr.jmoyson.com',
+    subject: 'Idea for {{company}}',
+    perDay: 3,
+    startDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    workDays: [1, 2, 3, 4, 5],
+    workHours: [9, 17],
+  };
 
-  const originalCwd = process.cwd();
-  const demoPath = fs.mkdtempSync(path.join(os.tmpdir(), 'coldr-hello-'));
+  const leads = [
+    {
+      email: 'alice@example.com',
+      name: 'Alice',
+      company: 'Example Corp',
+      variant: 'demo-a',
+      subject: 'Example Corp x Coldr?',
+    },
+    {
+      email: 'bob@sample.io',
+      name: 'Bob',
+      company: 'Sample Inc',
+      variant: 'demo-b',
+      subject: 'Save launch time at {{company}}',
+    },
+    {
+      email: 'charlie@demo.co',
+      name: 'Charlie',
+      company: 'Demo Co',
+      variant: 'demo-a',
+      subject: 'Example Corp x Coldr?',
+    },
+  ];
 
-  try {
-    process.chdir(demoPath);
+  const schedule = calculateSchedule(config, leads);
+  const summary = getScheduleSummary(schedule);
 
-    const config = {
-      sender: 'Coldr Demo <demo@example.com>',
-      replyTo: 'demo@example.com',
-      subject: 'Quick idea for {{company}}',
-      perDay: 10,
-      startDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-      workDays: [1, 2, 3, 4, 5],
-      workHours: [9, 17],
-    };
-    fs.writeFileSync('config.json', JSON.stringify(config, null, 2));
+  console.log('');
+  logInfo(`📧 Campaign: Coldr demo (scaffold preview)`);
+  logInfo(
+    `Sender: ${config.sender} | Window: ${config.workHours[0]}-${config.workHours[1]}h | Days: Mon-Fri`
+  );
+  logInfo(
+    `Start: ${new Date(summary.startDate).toLocaleString()} → End: ${new Date(
+      summary.endDate
+    ).toLocaleString()}`
+  );
 
-    const leads = [
-      {
-        email: 'alice@domain.com',
-        name: 'Alice',
-        company: 'Domain Inc',
-        variant: 'var-a',
-        subject: 'Do you like cookies?',
-        intro: 'Saw your team is hiring engineers — quick idea for you.',
-        cta: 'Book a 10-min chat',
-      },
-      {
-        email: 'charlie@piedpiper.com',
-        name: 'Charlie',
-        company: 'Pied Piper',
-        variant: 'var-b',
-        subject: 'Want to try a free cookie sample?',
-        intro: 'We built a small tool to automate outreach emails.',
-        cta: 'Try it this week',
-      },
-    ];
+  console.log('');
+  logInfo('🔍 DRY RUN - Preview:');
 
-    const csvHeader = 'email,name,company,variant,subject,intro,cta\n';
-    const csvRows = leads
-      .map((lead) =>
-        [
-          lead.email,
-          lead.name,
-          lead.company,
-          lead.variant,
-          lead.subject,
-          lead.intro,
-          lead.cta,
-        ]
-          .map((value) => `"${(value ?? '').replace(/"/g, '""')}"`)
-          .join(',')
-      )
-      .join('\n');
-    fs.writeFileSync('leads.csv', `${csvHeader}${csvRows}\n`);
+  const previewRows = schedule.map(({ lead, scheduledAt }) => ({
+    email: lead.email,
+    variant: (lead.variant || 'default').toUpperCase(),
+    subject: emailInternal.processTemplate(
+      lead.subject || config.subject,
+      lead,
+      config
+    ),
+    scheduledAt: new Date(scheduledAt).toLocaleString(),
+  }));
 
-    const template = `<h3>{{subject}}</h3>
-<p>Hi {{name}},</p>
-<p>{{intro}}</p>
-<p>{{cta}}</p>
-<p>— The {{company}} team</p>`;
-    fs.writeFileSync('template.html', template);
+  const headers = {
+    email: 'Email',
+    variant: 'Variant',
+    subject: 'Subject',
+    scheduledAt: 'Scheduled At',
+  };
 
-    const suppressions = { emails: [], domains: [] };
-    fs.writeFileSync('suppressions.json', JSON.stringify(suppressions, null, 2));
+  const columnWidths = Object.entries(headers).reduce(
+    (acc, [key, header]) => {
+      const maxValueLength = previewRows.reduce((max, row) => {
+        const value = row[key] ?? '';
+        return Math.max(max, value.length);
+      }, header.length);
+      acc[key] = maxValueLength;
+      return acc;
+    },
+    {}
+  );
 
-    await schedule('.', { dryRun: true });
-    logSuccess('Demo ready — tweak the files above to explore more.');
-  } finally {
-    process.chdir(originalCwd);
-    fs.rmSync(demoPath, { recursive: true, force: true });
-  }
+  const formatRow = (row) =>
+    `  ${chalk.white(row.email.padEnd(columnWidths.email))}  ${chalk.white(
+      row.variant.padEnd(columnWidths.variant)
+    )}  ${chalk.white(row.subject.padEnd(columnWidths.subject))}  ${chalk.white(
+      row.scheduledAt.padEnd(columnWidths.scheduledAt)
+    )}`;
+
+  console.log(
+    `  ${chalk.dim(headers.email.padEnd(columnWidths.email))}  ${chalk.dim(
+      headers.variant.padEnd(columnWidths.variant)
+    )}  ${chalk.dim(headers.subject.padEnd(columnWidths.subject))}  ${chalk.dim(
+      headers.scheduledAt.padEnd(columnWidths.scheduledAt)
+    )}`
+  );
+  previewRows.forEach((row) => {
+    console.log(formatRow(row));
+  });
+  console.log('');
+
+  const variantSummary = schedule.reduce((acc, { lead }) => {
+    const variant = (lead.variant || 'default').toUpperCase();
+    acc[variant] = (acc[variant] || 0) + 1;
+    return acc;
+  }, {});
+
+  const variantSummaryText =
+    Object.keys(variantSummary).length > 0
+      ? Object.entries(variantSummary)
+          .map(([variant, count]) => `${variant}=${count}`)
+          .join(', ')
+      : 'none';
+
+  logSuccess(
+    `Demo scheduled ${schedule.length} emails virtually (variants: ${variantSummaryText}).`
+  );
+  console.log('');
+  logInfo('Next steps for builders:');
+  console.log(
+    `  ${chalk.cyan('›')} ${chalk.white('Run')} ${chalk.cyan(
+      'npx @jmoyson/coldr@latest init'
+    )} ${chalk.white('to scaffold this exact setup locally.')}`
+  );
+  console.log(
+    `  ${chalk.cyan('›')} ${chalk.white('Star the repo')} ${chalk.dim(
+      '(https://github.com/jmoyson/coldr)'
+    )} ${chalk.white('to follow new drops.')}`
+  );
+  console.log(
+    `  ${chalk.cyan('›')} ${chalk.white('Ping or follow on X for playbooks and updates.')} ${chalk.dim('(https://x.com/jeremymoyson)')}`
+  );
+  console.log('');
+  console.log(chalk.italic.dim('Made with 🧊 for devs shipping SaaS who want outreach to feel native.'));
 }

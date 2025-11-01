@@ -36,14 +36,19 @@ describe('E2E: Hello Command', () => {
   });
 
   it('should run a demo dry-run', async () => {
+    const beforeFiles = fs.readdirSync('.');
     await hello();
+    const afterFiles = fs.readdirSync('.');
 
     const consoleOutput = vi.mocked(console.log).mock.calls.flat().join('\n');
-    expect(consoleOutput).toContain('Running a demo dry-run...');
+    expect(consoleOutput).toContain('Coldr demo (scaffold preview)');
     expect(consoleOutput).toContain('DRY RUN - Preview');
-    expect(consoleOutput).toContain('Do you like cookies?');
-    expect(consoleOutput).toContain('emails scheduled');
-    expect(consoleOutput).toContain('VAR-A=1');
-    expect(consoleOutput).toContain('VAR-B=1');
+    expect(consoleOutput).toContain('Example Corp');
+    expect(consoleOutput).toContain('Demo scheduled');
+    expect(consoleOutput).toContain('Next steps for builders');
+    expect(consoleOutput).toContain('Star the repo');
+    expect(consoleOutput).toContain('jeremymoyson');
+
+    expect(afterFiles).toEqual(beforeFiles);
   });
 });
