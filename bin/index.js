@@ -14,7 +14,7 @@ import {
 
 import init from '../src/commands/init.js';
 import schedule from '../src/commands/schedule.js';
-import test from '../src/commands/test.js';
+import preview from '../src/commands/preview.js';
 import hello from '../src/commands/hello.js';
 
 // Configure program
@@ -63,19 +63,26 @@ program
     }
   });
 
-// Test command
+// Preview command
 program
-  .command('test')
-  .description('Send a test email')
+  .command('preview')
+  .alias('test')
+  .description('Preview an email locally or send it to your inbox')
   .argument('[campaign]', 'Campaign name', 'coldr-campaign')
-  .argument('<to>', 'Recipient email')
+  .argument('[recipient]', 'Recipient email (legacy positional)')
+  .option('--lead <email>', 'Lead email to preview')
+  .option('--to <email>', 'Recipient email (overrides positional argument)')
   .option(
     '--resend-api-key <key>',
     'Resend API key (overrides RESEND_API_KEY env var)'
   )
-  .action(async (campaign, to, options) => {
+  .action(async (campaign, recipient, options) => {
     try {
-      await test(campaign, to, options);
+      const finalOptions = { ...options };
+      if (recipient && !finalOptions.to) {
+        finalOptions.to = recipient;
+      }
+      await preview(campaign, finalOptions);
     } catch (error) {
       handleCommandError(error);
     }

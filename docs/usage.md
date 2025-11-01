@@ -137,7 +137,7 @@ This prints the email that would be sent to the first lead in your CSV.
 To target a specific lead or send it to your inbox for testing:
 
 ```bash
-coldr preview --lead alice@domain.com --to your-email@example.com --resend-api-key re_your_api_key
+coldr preview --lead alice@example.com --to your-email@example.com --resend-api-key re_your_api_key
 ```
 
 If `--to` is omitted, the output stays local (no send occurs).

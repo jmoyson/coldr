@@ -35,7 +35,12 @@ npx @jmoyson/coldr@latest init
 cd coldr-campaign
 # Edit config.json, leads.csv, and template.html as you like
 coldr schedule --dry-run
-# Check everything looks good, then send:
+# Check everything looks good,
+
+# Optional: preview a single email
+coldr preview
+
+# Then run the campaign for real:
 coldr schedule --resend-api-key <your-api-key>
 ```
 
