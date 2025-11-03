@@ -149,7 +149,7 @@ export async function scheduleEmailBatch(
         lead,
         scheduledAt,
         success: true,
-        emailId: response.id,
+        emailId: response?.id || '',
       });
 
       spinner.text = chalk.cyan(

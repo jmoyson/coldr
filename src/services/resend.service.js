@@ -14,9 +14,25 @@ export class ResendService {
 
   async sendEmail(params) {
     try {
-      const response = await this.resend.emails.send(params);
-      return response;
+      const { data, error } = await this.resend.emails.send(params);
+
+      if (error) {
+        const details =
+          error.statusCode !== undefined && error.statusCode !== null
+            ? `${error.statusCode}`
+            : 'unknown status';
+        throw new CampaignError(
+          `Resend API error (${details}): ${error.message}`,
+          'EMAIL_SCHEDULE_FAILED'
+        );
+      }
+
+      return data;
     } catch (error) {
+      if (error instanceof CampaignError) {
+        throw error;
+      }
+
       throw new CampaignError(
         `Failed to schedule email: ${error.message}`,
         'EMAIL_SCHEDULE_FAILED'

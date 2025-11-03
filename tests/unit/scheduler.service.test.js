@@ -62,6 +62,15 @@ describe('Scheduler Service', () => {
       expect(result.getMonth()).toBe(9); // October (0-indexed)
       expect(result.getDate()).toBe(27);
     });
+
+    it('should return null when no time remains in work hours', () => {
+      const date = new Date('2025-10-27T18:00:00');
+      const workHours = [9, 17];
+      const earliest = new Date('2025-10-27T18:00:00');
+
+      const result = randomizeTimeInWorkHours(date, workHours, earliest);
+      expect(result).toBeNull();
+    });
   });
 
   describe('calculateSchedule', () => {
@@ -162,8 +171,48 @@ describe('Scheduler Service', () => {
       const schedule = calculateSchedule(config, leads);
       const scheduledDate = new Date(schedule[0].scheduledAt);
 
-      expect(scheduledDate.getHours()).toBe(9);
+      const configStart = new Date(config.startDate);
+      const workDayStart = new Date(
+        scheduledDate.getFullYear(),
+        scheduledDate.getMonth(),
+        scheduledDate.getDate(),
+        config.workHours[0],
+        0,
+        0,
+        0
+      );
+      const expectedEarliest =
+        configStart > workDayStart ? configStart : workDayStart;
+
+      expect(scheduledDate.getTime()).toBe(expectedEarliest.getTime());
       expect(scheduledDate.getMinutes()).toBe(0);
+
+      mathRandomSpy.mockRestore();
+    });
+
+    it('should not schedule emails before the safe future cutoff', () => {
+      const now = new Date('2025-10-27T14:30:00Z');
+      vi.setSystemTime(now);
+
+      const configSameDay = {
+        ...config,
+        startDate: '2025-10-27T09:00:00Z',
+      };
+
+      const leads = [{ email: 'future@example.com' }];
+      const mathRandomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+      const schedule = calculateSchedule(configSameDay, leads);
+
+      const scheduledDate = new Date(schedule[0].scheduledAt);
+      const safeDate = new Date(now);
+      safeDate.setHours(safeDate.getHours() + 1);
+
+      expect(scheduledDate.getTime()).toBeGreaterThanOrEqual(
+        safeDate.getTime()
+      );
+      expect(scheduledDate.getHours()).toBeGreaterThanOrEqual(9);
+      expect(scheduledDate.getHours()).toBeLessThan(17);
 
       mathRandomSpy.mockRestore();
     });

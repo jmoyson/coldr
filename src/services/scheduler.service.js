@@ -37,17 +37,32 @@ function getNextWorkDay(date, workDays) {
  * @param {number[]} workHours - [startHour, endHour]
  * @returns {Date} Date with random time in work hours
  */
-function randomizeTimeInWorkHours(date, workHours) {
+function randomizeTimeInWorkHours(date, workHours, earliestDate = null) {
   const [startHour, endHour] = workHours;
   const result = new Date(date);
 
-  const hourWindow = Math.max(endHour - startHour, 1);
-  const randomHour =
-    Math.floor(Math.random() * hourWindow) + startHour;
-  // Random minute
-  const randomMinute = Math.floor(Math.random() * 60);
+  const dayStart = new Date(result);
+  dayStart.setHours(startHour, 0, 0, 0);
 
-  result.setHours(randomHour, randomMinute, 0, 0);
+  const dayEnd = new Date(result);
+  dayEnd.setHours(endHour, 0, 0, 0);
+
+  const windowStart =
+    earliestDate && earliestDate > dayStart ? new Date(earliestDate) : dayStart;
+
+  if (windowStart >= dayEnd) {
+    return null;
+  }
+
+  const totalMinutes = Math.max(
+    Math.floor((dayEnd.getTime() - windowStart.getTime()) / (60 * 1000)),
+    1
+  );
+  const randomMinute = Math.floor(Math.random() * totalMinutes);
+
+  result.setTime(windowStart.getTime() + randomMinute * 60 * 1000);
+  result.setSeconds(0, 0);
+
   return result;
 }
 
@@ -76,29 +91,72 @@ export function calculateSchedule(config, leads) {
     currentDate = safeDate;
   }
 
-  // Ensure start date is a work day
-  if (!isWorkDay(currentDate, workDays)) {
-    currentDate = getNextWorkDay(currentDate, workDays);
-  }
-
   let emailsScheduledToday = 0;
+  let currentWorkDayKey = null;
 
   for (const lead of leads) {
-    // If we've hit the daily limit, move to next work day
-    if (emailsScheduledToday >= perDay) {
-      currentDate = getNextWorkDay(currentDate, workDays);
-      emailsScheduledToday = 0;
+    while (true) {
+      if (!isWorkDay(currentDate, workDays)) {
+        currentDate = getNextWorkDay(currentDate, workDays);
+        currentDate.setHours(workHours[0], 0, 0, 0);
+        emailsScheduledToday = 0;
+        currentWorkDayKey = null;
+        continue;
+      }
+
+      const dayKey = `${currentDate.getFullYear()}-${
+        currentDate.getMonth() + 1
+      }-${currentDate.getDate()}`;
+
+      if (dayKey !== currentWorkDayKey) {
+        currentWorkDayKey = dayKey;
+        emailsScheduledToday = 0;
+      }
+
+      if (emailsScheduledToday >= perDay) {
+        currentDate = getNextWorkDay(currentDate, workDays);
+        currentDate.setHours(workHours[0], 0, 0, 0);
+        emailsScheduledToday = 0;
+        currentWorkDayKey = null;
+        continue;
+      }
+
+      const dayStart = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        currentDate.getDate(),
+        workHours[0],
+        0,
+        0,
+        0
+      );
+
+      const earliestDate =
+        currentDate > dayStart ? currentDate : dayStart;
+
+      const scheduledAt = randomizeTimeInWorkHours(
+        currentDate,
+        workHours,
+        earliestDate
+      );
+
+      if (!scheduledAt) {
+        currentDate = getNextWorkDay(currentDate, workDays);
+        currentDate.setHours(workHours[0], 0, 0, 0);
+        emailsScheduledToday = 0;
+        currentWorkDayKey = null;
+        continue;
+      }
+
+      schedule.push({
+        lead,
+        scheduledAt,
+      });
+
+      emailsScheduledToday++;
+      currentDate = new Date(scheduledAt.getTime() + 60 * 1000);
+      break;
     }
-
-    // Generate random time within work hours for this email
-    const scheduledAt = randomizeTimeInWorkHours(currentDate, workHours);
-
-    schedule.push({
-      lead,
-      scheduledAt,
-    });
-
-    emailsScheduledToday++;
   }
 
   // Sort by scheduled time (should already be sorted, but ensures it)

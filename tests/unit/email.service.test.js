@@ -136,5 +136,42 @@ describe('Email Service', () => {
         replyTo: 'reply@example.com',
       });
     });
+
+    it('should capture failures when sendEmail throws', async () => {
+      const config = {
+        sender: 'Test <test@example.com>',
+        replyTo: 'reply@example.com',
+        subject: 'Test Subject',
+      };
+      const scheduledLeads = [
+        {
+          lead: { email: 'lead1@example.com', name: 'Lead 1' },
+          scheduledAt: new Date(),
+        },
+      ];
+      const template = 'Hello {{name}}';
+      const spinner = { text: '' };
+
+      const mockSendEmail = vi
+        .fn()
+        .mockRejectedValue(new Error('Resend API error (422): The `scheduled_at` field must be a future date'));
+      setResendService({
+        sendEmail: mockSendEmail,
+      });
+
+      const results = await scheduleEmailBatch(
+        config,
+        scheduledLeads,
+        template,
+        spinner,
+        {
+          delayMs: 0,
+          resendApiKey: 're_test_key',
+        }
+      );
+
+      expect(results[0].success).toBe(false);
+      expect(results[0].error).toContain('scheduled_at');
+    });
   });
 });
