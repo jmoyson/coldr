@@ -1,6 +1,6 @@
 {
   "name": "@jmoyson/coldr",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "Run Cold emails campaigns from your terminal.",
   "bin": {
     "coldr": "bin/index.js"
